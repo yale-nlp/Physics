@@ -1,8 +1,13 @@
 from openai import OpenAI
 import base64
 import os
+from dotenv import load_dotenv
+
+load_dotenv()  # 加载 .env 文件
+
+
 os.environ["OPENAI_BASE_URL"] = "https://yanlp.zeabur.app/v1"
-os.environ["OPENAI_API_KEY"] = "sk-UalnCx6d8J63A0cTAf3c3fA14a54499bA3Ce29A23cD1242b"
+os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 client = OpenAI()
 
 # Function to extract text from an image
@@ -73,21 +78,32 @@ def save_to_markdown(text, file_name="extracted_text.md"):
         
 
 def extract_text_from_images_in_folder(folder_path, api_key):
-    # 获取文件夹中所有以 .jpg 结尾的文件
-    jpg_files = [f for f in os.listdir(folder_path) if f.endswith('.jpg')]
-    
-    for jpg_file in jpg_files[:5]:
-        image_path = os.path.join(folder_path, jpg_file)
-        
-        print(f"Processing file: {jpg_file}")
-        
-        # 提取图像中的文本
-        extracted_text = extract_text_from_image(image_path, api_key)
-        
-        # 将提取的文本保存到 Markdown 文件
-        markdown_filename = 'md_output'+jpg_file.replace('.jpg', '.md')  # 将文件扩展名改为 .md
-        save_to_markdown(extracted_text, markdown_filename)
-        print(f"Saved extracted text to: {markdown_filename}")
+    """
+    Recursively process all JPG images in the given folder and its subfolders.
+
+    Args:
+        folder_path (str): Path to the root folder.
+        api_key (str): Your OpenAI API key.
+    """
+    for root, _, files in os.walk(folder_path):
+        for file in files:
+            if file.lower().endswith('.jpg'):
+                image_path = os.path.join(root, file)
+                print(f"Processing file: {image_path}")
+
+                # Extract text from the image
+                extracted_text = extract_text_from_image(image_path, api_key)
+
+                # Save the extracted text to a Markdown file
+                # Preserve folder structure in the output
+                relative_path = os.path.relpath(root, folder_path)
+                output_folder = os.path.join('test_md_output', relative_path)
+                os.makedirs(output_folder, exist_ok=True)
+                
+                markdown_filename = os.path.join(output_folder, file.replace('.jpg', '.md'))
+                save_to_markdown(extracted_text, markdown_filename)
+                print(f"Saved extracted text to: {markdown_filename}")
+
         
 
 if __name__ == "__main__":
@@ -95,7 +111,7 @@ if __name__ == "__main__":
     api_key = "sk-UalnCx6d8J63A0cTAf3c3fA14a54499bA3Ce29A23cD1242b"
 
     # 文件夹路径
-    folder_path = "extracted_photos"  # 替换为你的文件夹路径
+    folder_path = "test_questions"  # 替换为你的文件夹路径
 
     # 遍历并处理文件夹中的所有 JPG 文件
     extract_text_from_images_in_folder(folder_path, api_key)
