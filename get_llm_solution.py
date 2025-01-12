@@ -1,69 +1,101 @@
 import os
+import base64
+import json
 from dotenv import load_dotenv
 from openai import OpenAI  # 假设已安装 openai 客户端库
+import extract_boxed
 
 # 加载环境变量
 load_dotenv()
 
-# 设置 OpenAI 配置
+# 初始化 OpenAI 客户端
 os.environ["OPENAI_BASE_URL"] = "https://yanlp.zeabur.app/v1"
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-
-# 初始化 OpenAI 客户端
 client = OpenAI()
 
-def process_combined_questions_with_llm(input_folder, output_folder):
+def process_jsonl_and_generate_answers(input_jsonl, output_jsonl):
     """
-    Process combined_questions.md files, send the entire content to LLM,
-    and save the answers in corresponding subfolders while maintaining folder structure.
+    Process a JSONL file containing questions, solutions, and image graphs, send the data to LLM,
+    and save the answers to an output JSONL file.
 
     Args:
-        input_folder (str): Path to the folder containing combined_questions.md files.
-        output_folder (str): Path to the folder where the answers will be saved.
+        input_jsonl (str): Path to the JSONL file containing input data.
+        output_jsonl (str): Path to the JSONL file where the answers will be saved.
     """
-    # Traverse the input folder and find all combined_questions.md files
-    for root, _, files in os.walk(input_folder):
-        if "combined_questions.md" in files:
-            input_file_path = os.path.join(root, "combined_questions.md")
-            print(f"Processing file: {input_file_path}")
+    results = []
 
-            # Read the combined_questions.md file as a single string
-            with open(input_file_path, "r") as f:
-                questions = f.read().strip()
+    # Read JSONL file
+    with open(input_jsonl, "r") as file:
+        for line in file:
+            data = json.loads(line.strip())
 
-            # Prepare the output folder for answers
-            relative_path = os.path.relpath(root, input_folder)
-            answer_folder = os.path.join(output_folder, relative_path)
-            os.makedirs(answer_folder, exist_ok=True)
+            # Extract fields
+            entry_id = data.get("id")
+            questions = data.get("questions", "")
+            graphs = data.get("graphs", [])
 
-            # Answer file path
-            answer_file_path = os.path.join(answer_folder, "answers.md")
+            # Initialize LLM messages
+            llm_messages = []
 
-            print("Sending entire questions.md content to LLM...")
+            # Add question content
+            if questions:
+                llm_messages.append({
+                    "type": "text",
+                    "text": questions
+                })
+
+            # Add graphs (images)
+            if graphs:
+                llm_messages.extend(graphs)
+
+            # Skip empty messages
+            if not llm_messages:
+                continue
+
+            print(f"Processing entry ID: {entry_id}...")
 
             # LLM Prompt
             response = client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
-                    {"role": "system", 
-                     "content": "You are an AI expert specializing in answering advanced physics questions from multiple fields. A set of physics questions will be given. Please provide answers to all questions in the same order as presented. For each question, show the process and provide the final answer. Think step by step."},
-                    {"role": "user", "content": questions}
+                    {
+                        "role": "system",
+                        "content": "You are an AI expert specializing in answering advanced physics questions from multiple fields. A Physical question will be given. Show the process and provide the final answer. "
+                        "Answer in standard markdown format with Latex. put final answer(s) text or equations inside a Latex boxed format \\[boxed{}\\].\n"
+                        "exmaple: \\[ \\boxed{ final_answer} \\]]\n" 
+                        "Think step by step."
+                    },
+                    {
+                        "role": "user",
+                        "content": llm_messages
+                    }
                 ]
             )
 
             # Extract the answer from the LLM response
             answers = response.choices[0].message.content.strip()
 
-            # Save the answers to the corresponding answers.md file
-            with open(answer_file_path, "w") as f:
-                f.write("# Answers\n\n")
-                f.write(answers)
+            # Extract final answers from the solution
+            final_answers = extract_boxed.extract_final_answer_allform(answers, answer_type='list')
 
-            print(f"Answers saved to: {answer_file_path}")
+            # Append results to list
+            results.append({
+                "id": entry_id,
+                "solution": answers,
+                "final_answers": final_answers
+            })
 
+            print(f"Answers processed for entry ID {entry_id}.")
+
+    # Save all results to the output JSONL file
+    with open(output_jsonl, "w") as outfile:
+        for result in results:
+            outfile.write(json.dumps(result) + "\n")
+
+    print(f"All answers saved to {output_jsonl}.")
 
 # Example Usage
-input_folder = "test_combined_output"  # Folder with combined_questions.md
-output_folder = "test_llm_answers"  # Folder to save answers
+input_jsonl = "test_dataset.jsonl"  # JSONL file with id, questions, solutions, and graphs
+output_jsonl = "test_llm_response.jsonl"  # JSONL file to save answers
 
-process_combined_questions_with_llm(input_folder, output_folder)
+process_jsonl_and_generate_answers(input_jsonl, output_jsonl)

@@ -70,7 +70,6 @@ def save_to_markdown(text, file_name="extracted_text.md"):
     """
     try:
         with open(file_name, "w") as md_file:
-            md_file.write("# Extracted Text\n\n")
             md_file.write(text)
         print(f"Extracted text saved to {file_name}")
     except Exception as e:
@@ -79,7 +78,7 @@ def save_to_markdown(text, file_name="extracted_text.md"):
 
 def extract_text_from_images_in_folder(folder_path, api_key):
     """
-    Recursively process all JPG images in the given folder and its subfolders.
+    Recursively process all png images in the given folder and its subfolders.
 
     Args:
         folder_path (str): Path to the root folder.
@@ -87,7 +86,7 @@ def extract_text_from_images_in_folder(folder_path, api_key):
     """
     for root, _, files in os.walk(folder_path):
         for file in files:
-            if file.lower().endswith('.jpg'):
+            if file.lower().endswith('.png'):
                 image_path = os.path.join(root, file)
                 print(f"Processing file: {image_path}")
 
@@ -97,10 +96,10 @@ def extract_text_from_images_in_folder(folder_path, api_key):
                 # Save the extracted text to a Markdown file
                 # Preserve folder structure in the output
                 relative_path = os.path.relpath(root, folder_path)
-                output_folder = os.path.join('test_md_output', relative_path)
+                output_folder = os.path.join('book_md', relative_path)
                 os.makedirs(output_folder, exist_ok=True)
                 
-                markdown_filename = os.path.join(output_folder, file.replace('.jpg', '.md'))
+                markdown_filename = os.path.join(output_folder, file.replace('.png', '.md'))
                 save_to_markdown(extracted_text, markdown_filename)
                 print(f"Saved extracted text to: {markdown_filename}")
 
@@ -111,7 +110,7 @@ if __name__ == "__main__":
     api_key = "sk-UalnCx6d8J63A0cTAf3c3fA14a54499bA3Ce29A23cD1242b"
 
     # 文件夹路径
-    folder_path = "test_questions"  # 替换为你的文件夹路径
+    folder_path = "Book_png"  # 替换为你的文件夹路径
 
-    # 遍历并处理文件夹中的所有 JPG 文件
+    # 遍历并处理文件夹中的所有 png 文件
     extract_text_from_images_in_folder(folder_path, api_key)
