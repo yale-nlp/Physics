@@ -21,36 +21,44 @@ def read_file_content(file_path):
     except FileNotFoundError:
         return None
     
-def extract_answers_from_md(question_content, md_content):
+def extract_answers_from_md(question_content, md_content, max_retries=3):
     """
     从 Markdown 文件内容中提取所有最终答案。
 
     Args:
         question_content (str): 问题内容。
         md_content (str): 解决方案内容。
+        max_retries (int): 最大重试次数。
 
     Returns:
         list: 提取的所有最终答案列表。
     """
-    prompt = (
-        f"Questions Content:\n{question_content}\n\n"
-        f"Solutions Content:\n{md_content}\n\n"
-        "Extract the final answer of each problem(s) in a SymPy convertible format, and put extracted final answer(s) text or equations inside a Latex boxed format \\[boxed{}\\].\n"
-        "exmaple: \\[ \\boxed{C_v = c} \\]]\n"
-    )
+    for attempt in range(max_retries):
+        prompt = (
+            f"Questions Content:\n{question_content}\n\n"
+            f"Solutions Content:\n{md_content}\n\n"
+            "Extract the final answer of each problem(s) in a SymPy convertible format, and put extracted final answer(s) text or equations inside a Latex boxed format \\[boxed{}\\].\n"
+            "example: \\[ \\boxed{C_v = c} \\]]\n"
+        )
 
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": "You are an assistant that extracts final answers from provided content."},
-            {"role": "user", "content": prompt}
-        ]
-    )
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are an assistant that extracts final answers from provided content."},
+                {"role": "user", "content": prompt}
+            ]
+        )
 
-    raw_content = response.choices[0].message.content.strip()
-    print("Raw Content:", raw_content)
+        raw_content = response.choices[0].message.content.strip()
+        print(f"Attempt {attempt + 1}: Raw Content:\n", raw_content)
 
-    return extract_boxed.extract_final_answer_allform(raw_content, answer_type='list')
+        final_answers = extract_boxed.extract_final_answer_allform(raw_content, answer_type='list')
+
+        if final_answers:
+            return final_answers
+
+    print("Failed to extract final answers after maximum retries.")
+    return []
 
 def encode_png_to_data_url(folder_path):
     image_messages = []
@@ -106,7 +114,7 @@ def process_folders_to_jsonl(input_folder, output_file):
 
 # 示例用法
 if __name__ == "__main__":
-    input_folder = 'test_examples'  # 替换为你的主文件夹路径
-    output_file = 'test_dataset.jsonl'  # 输出文件路径
+    input_folder = 'mechanics'  # 替换为你的主文件夹路径
+    output_file = 'mechanics_dataset.jsonl'  # 输出文件路径
     process_folders_to_jsonl(input_folder, output_file)
     print(f"JSONL文件已生成: {output_file}")
