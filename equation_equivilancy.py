@@ -1,4 +1,4 @@
-from sympy import simplify, Eq
+from sympy import simplify, expand, Eq, symbols, trigsimp
 from sympy.parsing.latex import parse_latex
 import re
 import os
@@ -9,113 +9,83 @@ os.environ["OPENAI_BASE_URL"] = "https://yanlp.zeabur.app/v1"
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 client = OpenAI()
 
-def _fix_fracs(string):
-    substrs = string.split("\\frac")
-    new_str = substrs[0]
-    if len(substrs) > 1:
-        substrs = substrs[1:]
-        for substr in substrs:
-            new_str += "\\frac"
-            if substr[0] == "{":
-                new_str += substr
-            else:
-                try:
-                    assert len(substr) >= 2
-                except:
-                    return string
-                a = substr[0]
-                b = substr[1]
-                if b != "{":
-                    if len(substr) > 2:
-                        post_substr = substr[2:]
-                        new_str += "{" + a + "}{" + b + "}" + post_substr
-                    else:
-                        new_str += "{" + a + "}{" + b + "}"
-                else:
-                    if len(substr) > 2:
-                        post_substr = substr[2:]
-                        new_str += "{" + a + "}" + b + post_substr
-                    else:
-                        new_str += "{" + a + "}" + b
-    string = new_str
-    return string
-
-
-def _fix_a_slash_b(string):
-    if len(string.split("/")) != 2:
-        return string
-    a = string.split("/")[0]
-    b = string.split("/")[1]
-    try:
-        a = int(a)
-        b = int(b)
-        assert string == "{}/{}".format(a, b)
-        new_string = "\\frac{" + str(a) + "}{" + str(b) + "}"
-        return new_string
-    except:
-        return string
-    
-def _fix_sqrt(string):
-    if "\\sqrt" not in string:
-        return string
-    splits = string.split("\\sqrt")
-    new_string = splits[0]
-    for split in splits[1:]:
-        if split[0] != "{":
-            a = split[0]
-            new_substr = "\\sqrt{" + a + "}" + split[1:]
-        else:
-            new_substr = "\\sqrt" + split
-        new_string += new_substr
-    return new_string
 
 def _extract_core_eq(expr: str) -> str:
     """
     Extract the right-hand side of an equation or implication from a LaTeX expression.
+    Handles cases where '=' and '\\implies' appear together.
     """
-    if "=" in expr:
-        parts = expr.split("=")
-        expr = parts[-1].strip()
+    # Handle implications first
     if "\\implies" in expr:
         parts = expr.split("\\implies")
-        expr = parts[-1].strip()
+        expr = parts[-1].strip()  # Keep the right-hand side of the implication
+    
+    # Then handle equations
+    if "=" in expr:
+        parts = expr.split("=")
+        expr = parts[-1].strip()  # Keep the right-hand side of the equation
+    
     return expr
 
+
 def _preprocess_latex(string: str) -> str:
-    """
-    Preprocess LaTeX expressions to fix common issues and normalize the format.
-    """
+    """Preprocess LaTeX to normalize format and separate variables."""
     if not string:
         return ""
     
-    # Remove redundant LaTeX formatting
-    string = string.replace("\\left", "").replace("\\right", "")
-    string = string.replace("\\!", "").replace("\\$", "").replace("\\%", "")
+    def fix_fracs(string):
+        substrs = string.split("\\frac")
+        new_str = substrs[0]
+        if len(substrs) > 1:
+            substrs = substrs[1:]
+            for substr in substrs:
+                new_str += "\\frac"
+                if substr[0] == "{":
+                    new_str += substr
+                else:
+                    if len(substr) >= 2:
+                        a, b = substr[0], substr[1]
+                        if b != "{":
+                            new_str += f"{{{a}}}{{{b}}}" + substr[2:]
+                        else:
+                            new_str += f"{{{a}}}" + b + substr[2:]
+                    else:
+                        new_str += substr
+        return new_str
+    
+    def fix_sqrt(string):
+        if "\\sqrt" not in string:
+            return string
+        splits = string.split("\\sqrt")
+        new_string = splits[0]
+        for split in splits[1:]:
+            if split[0] != "{":
+                a = split[0]
+                new_substr = f"\\sqrt{{{a}}}" + split[1:]
+            else:
+                new_substr = "\\sqrt" + split
+            new_string += new_substr
+        return new_string
 
-    # Remove angle symbol
-    string = string.replace("^{\\circ}", "").replace("^\\circ", "")
+    # Normalize common issues
+    string = re.sub(r"_\{.*?\}", "", string)
+    string = re.sub(r"_\\?\w", "", string)
+    string = string.replace("\\\\", "\\").replace("tfrac", "frac").replace("dfrac", "frac")
+    string = string.replace("\\left", "").replace("\\right", "").replace("\\cdot", "*")
 
-    # Normalize fractions and square roots
-    string = _fix_fracs(string)
-    string = _fix_a_slash_b(string)
-    string = _fix_sqrt(string)
+    # Separate variables and symbols
+    string = re.sub(r"([a-zA-Z])\\([a-zA-Z])", r"\1 * \2", string)  # Separate adjacent variables and Greek letters
+    string = re.sub(r"(\\[a-zA-Z]+)([a-zA-Z])", r"\1 * \2", string)  # Separate Greek letters and variables
 
-    # Fix decimal formatting
-    string = string.replace(" .", " 0.").replace("{.", "{0.")
-    if string.startswith("."):
-        string = "0" + string
-
-    # Remove units
-    if "\\text{ " in string:
-        splits = string.split("\\text{ ")
-        if len(splits) == 2:
-            string = splits[0]
-
-    # Remove spaces
-    string = string.replace(" ", "")
+    # Handle fractions and square roots
+    string = fix_fracs(string)
+    string = fix_sqrt(string)
 
     return string
 
+def _standardize_expr(expr):
+    """Standardize a SymPy expression."""
+    return simplify(expand(trigsimp(expr)))
 
 def call_llm_to_compare(expr1: str, expr2: str) -> bool:
     """
@@ -135,10 +105,15 @@ def call_llm_to_compare(expr1: str, expr2: str) -> bool:
         print(f"Error calling LLM: {e}")
         return False
 
+
+
+
+
+
 def is_equiv(expr1: str, expr2: str, verbose: bool = False) -> dict:
     """
-    Determine if two LaTeX expressions are mathematically or semantically equivalent.
-    Returns results in a dictionary format for further analysis.
+    Compare two LaTeX expressions for equivalence.
+    Returns results in a dictionary format.
     """
     result_data = {
         "input_expressions": {"expr1": expr1, "expr2": expr2},
@@ -147,48 +122,46 @@ def is_equiv(expr1: str, expr2: str, verbose: bool = False) -> dict:
         "llm_result": None,
         "final_result": None,
     }
+
     try:
         # If expressions contain text, delegate to LLM
         if "\\text" in expr1 or "\\text" in expr2:
             if verbose:
                 print("Detected \\text. Delegating comparison to LLM.")
             llm_result = call_llm_to_compare(expr1, expr2)
-            result_data["llm_result"] = llm_result
-            result_data["final_result"] = llm_result
+            result_data["llm_result"] = str(llm_result)
+            result_data["final_result"] = str(llm_result)
             return result_data
 
         # Preprocess LaTeX expressions
         expr1_processed = _preprocess_latex(expr1)
         expr2_processed = _preprocess_latex(expr2)
-        result_data["preprocessed_expressions"] = {"expr1": expr1_processed, "expr2": expr2_processed}
 
         # Extract core mathematical content
         expr1_core = _extract_core_eq(expr1_processed)
         expr2_core = _extract_core_eq(expr2_processed)
 
-        if verbose:
-            print(f"Preprocessed Expr1: {expr1_core}")
-            print(f"Preprocessed Expr2: {expr2_core}")
+        # Parse into SymPy objects
+        sympy_expr1 = _standardize_expr(parse_latex(expr1_core))
+        sympy_expr2 = _standardize_expr(parse_latex(expr2_core))
+        result_data["preprocessed_expressions"] = {"expr1": str(sympy_expr1), "expr2": str(sympy_expr2)}
 
-        # Parse expressions into SymPy objects
-        sympy_expr1 = parse_latex(expr1_core)
-        sympy_expr2 = parse_latex(expr2_core)
+        # SymPy comparison
+        try:
+            sympy_result = simplify(sympy_expr1 - sympy_expr2) == 0
+        except Exception as e:
+            sympy_result = False
 
-        if verbose:
-            print(f"SymPy Expr1: {sympy_expr1}")
-            print(f"SymPy Expr2: {sympy_expr2}")
+        # If simplify fails, try symbolic equality check
+        if not sympy_result:
+            try:
+                sympy_result = sympy_expr1.equals(sympy_expr2)
+            except Exception:
+                sympy_result = False
 
-        # If expressions are equations, compare their RHS
-        if isinstance(sympy_expr1, Eq):
-            sympy_expr1 = sympy_expr1.rhs
-        if isinstance(sympy_expr2, Eq):
-            sympy_expr2 = sympy_expr2.rhs
-
-        # Simplify and compare for mathematical equivalence
-        sympy_result = simplify(sympy_expr1 - sympy_expr2) == 0
         result_data["sympy_result"] = sympy_result
 
-        # If SymPy fails, delegate to LLM
+        # Delegate to LLM if SymPy fails
         if not sympy_result:
             if verbose:
                 print("SymPy result is False. Delegating to LLM for further evaluation.")
@@ -208,8 +181,8 @@ def is_equiv(expr1: str, expr2: str, verbose: bool = False) -> dict:
 # Example tests
 if __name__ == "__main__":
     # Example 1: Mathematical expressions
-    latex1 = r"R = \\frac{x}{4} \\frac{[2 + (\\alpha_1 + \\alpha_2) \\Delta T]}{(\\alpha_2 - \\alpha_1) \\Delta T}"
-    latex2 = r"R = \\frac{x}{2(\\alpha_2 - \\alpha_1) \\Delta T}"
+    latex1 = r"x = \sqrt{2 \mu h R}"
+    latex2 = r"\sqrt{2\mu Rh}"
     result = is_equiv(latex1, latex2, verbose=True)
     print(result)
 

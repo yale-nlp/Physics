@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import extract_boxed
 import equation_equivilancy
+from sympy import Mul 
+from sympy.printing import srepr
 
 # 加载环境变量
 load_dotenv()
@@ -17,11 +19,13 @@ os.environ["OPENAI_BASE_URL"] = "https://yanlp.zeabur.app/v1"
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 client = OpenAI()
 
-def ask_llm_with_retries(llm_messages, max_retries=3, delay=2):
+
+def ask_llm_with_retries(llm_messages, max_retries=3, delay=2, llm="gpt-4o"):
     for attempt in range(max_retries):
         try:
+            time.sleep(delay)
             response = client.chat.completions.create(
-                model="gpt-4o",
+                model=f"{llm}",
                 messages=llm_messages
             )
             return response.choices[0].message.content.strip()
@@ -32,9 +36,13 @@ def ask_llm_with_retries(llm_messages, max_retries=3, delay=2):
     print("All attempts to get a valid response from LLM failed.")
     return None
 
-def process_jsonl_and_generate_answers(input_jsonl, output_jsonl, summary_csv, performance_plot, max_lines=30):
+def process_jsonl_and_generate_answers(input_jsonl, output_jsonl, summary_csv, performance_plot, score_csv, max_lines=30, llm="gpt-4o"):
     results = []
     accuracies = []
+
+    # 初始化统计变量
+    sympy_errors_correct_llm_total = 0
+    sympy_errors_total = 0
 
     # Read JSONL file
     with open(input_jsonl, "r") as file:
@@ -48,20 +56,17 @@ def process_jsonl_and_generate_answers(input_jsonl, output_jsonl, summary_csv, p
             graphs = data.get("graphs", [])
             dataset_answers = data.get("final_answers", [])
 
-            llm_messages = []
+            llm_messages = ''
             if questions:
-                llm_messages.append({"type": "text", "text": questions})
-            if graphs:
-                llm_messages.extend(graphs)
+                llm_messages+=questions
             if not llm_messages:
                 continue
 
             print(f"Processing entry ID: {entry_id}...")
-
             messages = [
                 {
                     "role": "system",
-                    "content": "You are an AI expert specializing in answering advanced physics questions. Provide the final answer at the end in Latex boxed format."
+                    "content": "You are an AI expert specializing in answering advanced physics questions. Think step by step and provide solution and final answer. Provide the final answer at the end in Latex boxed format \\[boxed{}\\]. Example: \\[ \\boxed{ final_answer} \\]]\n"
                 },
                 {
                     "role": "user",
@@ -69,7 +74,7 @@ def process_jsonl_and_generate_answers(input_jsonl, output_jsonl, summary_csv, p
                 }
             ]
 
-            answers = ask_llm_with_retries(messages)
+            answers = ask_llm_with_retries(messages, max_retries=3, llm=llm)
             if answers is None:
                 print(f"Skipping entry ID {entry_id} due to repeated failures.")
                 continue
@@ -80,7 +85,7 @@ def process_jsonl_and_generate_answers(input_jsonl, output_jsonl, summary_csv, p
                 if llm_final_answers:
                     break
                 print(f"No boxed content found in attempt {attempt + 1}. Retrying...")
-                answers = ask_llm_with_retries(messages)
+                answers = ask_llm_with_retries(messages,llm=llm)
                 if answers is None:
                     break
 
@@ -95,9 +100,21 @@ def process_jsonl_and_generate_answers(input_jsonl, output_jsonl, summary_csv, p
             for llm_answer in flattened_answers:
                 matched = False
                 for dataset_answer in dataset_answers:
+                    print(f"Comparing LLM Answer: {llm_answer} with Dataset Answer: {dataset_answer}")
                     equivalency_data = equation_equivilancy.is_equiv(llm_answer, dataset_answer, verbose=False)
                     equivalency_results.append(equivalency_data)
-                    if equivalency_data.get("final_result", False):
+
+                    # 判断是否是 sympy 错误但 LLM 正确的情况
+                    sympy_result = equivalency_data.get("sympy_result")
+                    llm_result = equivalency_data.get("llm_result")
+                    final_result = equivalency_data.get("final_result")
+
+                    if sympy_result is False and llm_result is True:
+                        sympy_errors_correct_llm_total += 1
+                    if sympy_result is not None:
+                        sympy_errors_total += 1
+
+                    if final_result == True:
                         correct_count += 1
                         matched = True
                         break
@@ -120,7 +137,9 @@ def process_jsonl_and_generate_answers(input_jsonl, output_jsonl, summary_csv, p
 
     overall_accuracy = sum(accuracies) / len(accuracies) if accuracies else 0.0
     variance = statistics.variance(accuracies) if len(accuracies) > 1 else 0.0
-    print(f"Overall Accuracy: {overall_accuracy:.2f}, Variance: {variance:.4f}")
+    sympy_error_ratio = sympy_errors_correct_llm_total / sympy_errors_total if sympy_errors_total > 0 else 0.0
+
+    print(f"Overall Accuracy: {overall_accuracy:.2f}, Variance: {variance:.4f}, Sympy Error Correct Ratio: {sympy_error_ratio:.4f}")
 
     with open(output_jsonl, "w") as outfile:
         for result in results:
@@ -128,23 +147,39 @@ def process_jsonl_and_generate_answers(input_jsonl, output_jsonl, summary_csv, p
 
     with open(summary_csv, "w", newline="") as csvfile:
         csv_writer = csv.writer(csvfile)
-        csv_writer.writerow(["Overall Accuracy", "Variance"])
-        csv_writer.writerow([overall_accuracy, variance])
+        csv_writer.writerow(["Overall Accuracy", "Variance", "Sympy Error Correct Ratio"])
+        csv_writer.writerow([overall_accuracy, variance, sympy_error_ratio])
 
-    plt.scatter(range(len(accuracies)), accuracies)
-    plt.title("Performance Accuracy Scatter Plot")
+    # 保存每个问题的分数到单独的 CSV 文件
+    with open(score_csv, "w", newline="") as scorefile:
+        csv_writer = csv.writer(scorefile)
+        csv_writer.writerow(["Entry ID", "Accuracy"])
+        for idx, accuracy in enumerate(accuracies):
+            csv_writer.writerow([results[idx]["id"], accuracy])
+
+    # 绘制一维散点图并标注统计数据
+    plt.figure()
+    plt.scatter(range(len(accuracies)), accuracies, label="Accuracy Scores")
+    plt.axhline(overall_accuracy, color="green", linestyle="--", label=f"Mean: {overall_accuracy:.2f}")
+    plt.axhline(statistics.median(accuracies), color="blue", linestyle="--", label=f"Median: {statistics.median(accuracies):.2f}")
+    plt.axhline(overall_accuracy + statistics.stdev(accuracies), color="red", linestyle="--", label=f"+1 Std Dev: {overall_accuracy + statistics.stdev(accuracies):.2f}")
+    plt.axhline(overall_accuracy - statistics.stdev(accuracies), color="red", linestyle="--", label=f"-1 Std Dev: {overall_accuracy - statistics.stdev(accuracies):.2f}")
+    plt.title(f"{llm}Performance Plot")
     plt.xlabel("Entry Index")
-    plt.ylabel("Accuracy")
+    plt.ylabel("Correctness")
+    plt.legend()
     plt.savefig(performance_plot)
     plt.show()
 
-    print(f"Results saved to {output_jsonl}, summary to {summary_csv}, and plot to {performance_plot}.")
+    print(f"Results saved to {output_jsonl}, summary to {summary_csv}, scores to {score_csv}, and plot to {performance_plot}.")
 
 # Example Usage
 category = "mechanics"
-input_jsonl = f"{category}_dataset.jsonl"
-output_jsonl = f"{category}_llm_response.jsonl"
-summary_csv = f"{category}_accuracy.csv"
-performance_plot = f"{category}_scatter_plot.png"
+llm = "Qwen/Qwen2.5-72B-Instruct-Turbo"
+input_jsonl = f"{category}_dataset_textonly.jsonl"
+output_jsonl = f"{category}_qwen_response.jsonl"
+summary_csv = f"{category}_qwen_accuracy.csv"
+score_csv = f"{category}_qwen_score.csv"
+performance_plot = f"{category}_qwen_scatter_plot.png"
 
-process_jsonl_and_generate_answers(input_jsonl, output_jsonl, summary_csv, performance_plot, max_lines=30)
+process_jsonl_and_generate_answers(input_jsonl, output_jsonl, summary_csv, performance_plot, score_csv, max_lines=50, llm=llm)
