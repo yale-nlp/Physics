@@ -114,7 +114,7 @@ def process_folders_to_jsonl(input_folder, output_file):
 
 # 示例用法
 if __name__ == "__main__":
-    input_folder = 'mechanics'  # 替换为你的主文件夹路径
-    output_file = 'mechanics_dataset.jsonl'  # 输出文件路径
+    input_folder = 'optics'  # 替换为你的主文件夹路径
+    output_file = 'optics_dataset.jsonl'  # 输出文件路径
     process_folders_to_jsonl(input_folder, output_file)
     print(f"JSONL文件已生成: {output_file}")

@@ -129,8 +129,8 @@ def is_equiv(expr1: str, expr2: str, verbose: bool = False) -> dict:
             if verbose:
                 print("Detected \\text. Delegating comparison to LLM.")
             llm_result = call_llm_to_compare(expr1, expr2)
-            result_data["llm_result"] = str(llm_result)
-            result_data["final_result"] = str(llm_result)
+            result_data["llm_result"] = llm_result
+            result_data["final_result"] = llm_result
             return result_data
 
         # Preprocess LaTeX expressions
