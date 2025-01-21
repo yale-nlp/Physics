@@ -3,38 +3,41 @@ import json
 import time
 import csv
 import statistics
-import asyncio
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
-from openai import AsyncOpenAI
+from openai import OpenAI
 import extract_boxed
 import equation_equivilancy
-import aiofiles
 
 # 加载环境变量
 load_dotenv()
 
 # 初始化 OpenAI 客户端
-os.environ["OPENAI_BASE_URL"] = "https://yanlp.zeabur.app/v1"
-os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-client = AsyncOpenAI()
+os.environ["OPENAI_BASE_URL"] = "https://api-inference.huggingface.co/v1/"
+os.environ["OPENAI_API_KEY"] = os.getenv("HUGGINGFACE_API_KEY")
+os.environ["x-wait-for-model"] = "true"
+client = OpenAI()
 
-async def ask_llm_with_retries(llm_messages, max_retries=3, delay=2, llm="gpt-4o"):
+def ask_llm_with_retries(llm_messages, max_retries=3, delay=2, llm="gpt-4o"):
     for attempt in range(max_retries):
         try:
-            response = await client.chat.completions.create(
+            response = client.chat.completions.create(
                 model=f"{llm}",
-                messages=llm_messages
+                messages=llm_messages,
+                max_tokens=2048,
+                temperature=0.0,
             )
+            print(response.choices[0].message.content.strip())
             return response.choices[0].message.content.strip()
         except Exception as e:
             print(f"Attempt {attempt + 1} failed: {e}")
             if attempt < max_retries - 1:
-                await asyncio.sleep(delay)
-    print("All attempts to get a valid response from LLM failed.")
+                time.sleep(delay)
     return None
 
-async def process_entry(entry, llm, max_retries=3):
+def process_entry(entry, llm, max_retries=3):
     entry_id = entry.get("id")
     questions = entry.get("questions", "")
     graphs = entry.get("graphs", [])
@@ -48,13 +51,11 @@ async def process_entry(entry, llm, max_retries=3):
     if not llm_messages:
         return None, 0, 0
 
-    print(f"Processing entry ID: {entry_id}...")
-
     for attempt in range(max_retries):
         messages = [
             {
                 "role": "system",
-                "content": "You are an AI expert specializing in answering advanced physics questions. Think step by step and provide solution and final answer. Provide the final answer at the end in Latex boxed format \\[boxed{}\\]. Example: \\[ \\boxed{ final_answer} \\\]]\n"
+                "content": "You are an AI expert specializing in answering advanced physics questions. Think step by step and provide solution and final answer. Provide the final answer at the end in Latex boxed format \\[boxed{}\\]. Example: \\[ \\boxed{ final_answer} \\]\n"
             },
             {
                 "role": "user",
@@ -62,17 +63,13 @@ async def process_entry(entry, llm, max_retries=3):
             }
         ]
 
-        answers = await ask_llm_with_retries(messages, max_retries=3, llm=llm)
+        answers = ask_llm_with_retries(messages, max_retries=3, llm=llm)
         if answers is None:
-            print(f"Skipping entry ID {entry_id} due to repeated failures.")
             return None, 0, 0
 
-        print(answers)
         llm_final_answers = extract_boxed.extract_final_answer_allform(answers, answer_type='list')
         if llm_final_answers:
             break
-
-        print(f"Attempt {attempt + 1}: No valid boxed content. Retrying...")
 
     if not llm_final_answers:
         print(f"Skipping entry ID {entry_id} due to missing boxed content after {max_retries} attempts.")
@@ -116,8 +113,7 @@ async def process_entry(entry, llm, max_retries=3):
         "accuracy": accuracy
     }, sympy_errors_correct_llm, sympy_errors
 
-    
-async def process_jsonl_and_generate_answers(input_jsonl, output_dir, max_lines=30, llm="gpt-4o"):
+def process_jsonl_and_generate_answers(input_jsonl, output_dir, max_lines=30, llm="gpt-4o"):
     os.makedirs(output_dir, exist_ok=True)
     output_jsonl = os.path.join(output_dir, "response.jsonl")
     summary_csv = os.path.join(output_dir, "accuracy.csv")
@@ -129,18 +125,12 @@ async def process_jsonl_and_generate_answers(input_jsonl, output_dir, max_lines=
     sympy_errors_correct_llm_total = 0
     sympy_errors_total = 0
 
-    async with aiofiles.open(input_jsonl, "r") as file:
-        lines = await file.readlines()
+    with open(input_jsonl, "r") as file:
+        lines = file.readlines()
 
-    tasks = []
-    for idx, line in enumerate(lines):
-        if idx >= max_lines:
-            break
+    for idx, line in enumerate(lines[:max_lines]):
         data = json.loads(line.strip())
-        tasks.append(process_entry(data, llm))
-
-    entries = await asyncio.gather(*tasks)
-    for entry_result in entries:
+        entry_result = process_entry(data, llm)
         if entry_result[0]:
             results.append(entry_result[0])
             accuracies.append(entry_result[0]["accuracy"])
@@ -153,9 +143,9 @@ async def process_jsonl_and_generate_answers(input_jsonl, output_dir, max_lines=
 
     print(f"Overall Accuracy: {overall_accuracy:.2f}, Variance: {variance:.4f}, Sympy Error Correct Ratio: {sympy_error_ratio:.4f}")
 
-    async with aiofiles.open(output_jsonl, "w") as outfile:
+    with open(output_jsonl, "w") as outfile:
         for result in results:
-            await outfile.write(json.dumps(result, ensure_ascii=False) + "\n")
+            outfile.write(json.dumps(result, ensure_ascii=False) + "\n")
 
     with open(summary_csv, "w", newline="") as csvfile:
         csv_writer = csv.writer(csvfile)
@@ -163,7 +153,7 @@ async def process_jsonl_and_generate_answers(input_jsonl, output_dir, max_lines=
         csv_writer.writerow([overall_accuracy, variance, sympy_error_ratio])
 
     with open(score_csv, "w", newline="") as scorefile:
-        csv_writer = csv.writer(csvfile)
+        csv_writer = csv.writer(scorefile)
         csv_writer.writerow(["Entry ID", "Accuracy"])
         for idx, accuracy in enumerate(accuracies):
             csv_writer.writerow([results[idx]["id"], accuracy])
@@ -179,15 +169,18 @@ async def process_jsonl_and_generate_answers(input_jsonl, output_dir, max_lines=
     plt.ylabel("Correctness")
     plt.legend()
     plt.savefig(performance_plot)
-    plt.show()
 
     print(f"Results saved to {output_jsonl}, summary to {summary_csv}, scores to {score_csv}, and plot to {performance_plot}.")
 
 # Example Usage
+def main(category, max_lines=5):
+    llm = "Qwen/Qwen2-VL-7B-Instruct"
+    input_jsonl = f"datasets/{category}_dataset.jsonl"
+    output_dir = f"{category}/Qwen2-VL-7B-Instruct_output"
+
+    process_jsonl_and_generate_answers(input_jsonl, output_dir, max_lines, llm)
+
 if __name__ == "__main__":
     category = "mechanics"
-    llm = "gpt-4o"
-    input_jsonl = f"{category}_dataset.jsonl"
-    output_dir = f"{category}_gpt4o_output"
-
-    asyncio.run(process_jsonl_and_generate_answers(input_jsonl, output_dir, max_lines=5, llm=llm))
+    max_lines = 250
+    main(category, max_lines)

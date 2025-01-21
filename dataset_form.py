@@ -92,6 +92,8 @@ def process_folders_to_jsonl(input_folder, output_file):
 
             if questions_content is not None and solutions_content is not None:
                 final_answers = extract_answers_from_md(questions_content, solutions_content)
+                if not final_answers:
+                    continue
                 flattened_answers = [item for sublist in final_answers for item in sublist] if isinstance(final_answers[0], list) else final_answers
 
                 jsonl_entry = {
@@ -114,7 +116,7 @@ def process_folders_to_jsonl(input_folder, output_file):
 
 # 示例用法
 if __name__ == "__main__":
-    input_folder = 'optics'  # 替换为你的主文件夹路径
-    output_file = 'optics_dataset.jsonl'  # 输出文件路径
+    input_folder = 'Statistical Mechanics'  # 替换为你的主文件夹路径
+    output_file = 'Statistical Mechanics_dataset.jsonl'  # 输出文件路径
     process_folders_to_jsonl(input_folder, output_file)
     print(f"JSONL文件已生成: {output_file}")

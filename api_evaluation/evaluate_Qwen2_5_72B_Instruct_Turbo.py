@@ -4,6 +4,9 @@ import time
 import csv
 import statistics
 import asyncio
+from tqdm.asyncio import tqdm
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
@@ -15,8 +18,8 @@ import aiofiles
 load_dotenv()
 
 # 初始化 OpenAI 客户端
-os.environ["OPENAI_BASE_URL"] = "https://generativelanguage.googleapis.com/v1beta/openai/"
-os.environ["OPENAI_API_KEY"] = os.getenv("GEMINI_API_KEY")
+os.environ["OPENAI_BASE_URL"] = "https://api-inference.huggingface.co/v1/"
+os.environ["OPENAI_API_KEY"] = os.getenv("HUGGINGFACE_API_KEY")
 client = AsyncOpenAI()
 
 async def ask_llm_with_retries(llm_messages, max_retries=3, delay=2, llm="gpt-4o"):
@@ -24,17 +27,17 @@ async def ask_llm_with_retries(llm_messages, max_retries=3, delay=2, llm="gpt-4o
         try:
             response = await client.chat.completions.create(
                 model=f"{llm}",
-                messages=llm_messages
+                messages=llm_messages,
+                max_tokens=2048,
+                temperature=0.0
             )
             return response.choices[0].message.content.strip()
         except Exception as e:
-            print(f"Attempt {attempt + 1} failed: {e}")
             if attempt < max_retries - 1:
                 await asyncio.sleep(delay)
-    print("All attempts to get a valid response from LLM failed.")
     return None
 
-async def process_entry(entry, llm, sympy_errors_correct_llm_total, sympy_errors_total, max_retries=3):
+async def process_entry(entry, llm, max_retries=3):
     entry_id = entry.get("id")
     questions = entry.get("questions", "")
     graphs = entry.get("graphs", [])
@@ -46,15 +49,13 @@ async def process_entry(entry, llm, sympy_errors_correct_llm_total, sympy_errors
     if graphs:
         llm_messages.extend(graphs)
     if not llm_messages:
-        return None, sympy_errors_correct_llm_total, sympy_errors_total
-
-    print(f"Processing entry ID: {entry_id}...")
+        return None, 0, 0
 
     for attempt in range(max_retries):
         messages = [
             {
                 "role": "system",
-                "content": "You are an AI expert specializing in answering advanced physics questions. Think step by step and provide solution and final answer. Provide the final answer at the end in Latex boxed format \\[boxed{}\\]. Example: \\[ \\boxed{ final_answer} \\\]]\n"
+                "content": "You are an AI expert specializing in answering advanced physics questions. Think step by step and provide solution and final answer. Provide the final answer at the end in Latex boxed format \\[boxed{}\\]. Example: \\[ boxed{ final_answer} \\]"
             },
             {
                 "role": "user",
@@ -64,22 +65,20 @@ async def process_entry(entry, llm, sympy_errors_correct_llm_total, sympy_errors
 
         answers = await ask_llm_with_retries(messages, max_retries=3, llm=llm)
         if answers is None:
-            print(f"Skipping entry ID {entry_id} due to repeated failures.")
-            return None, sympy_errors_correct_llm_total, sympy_errors_total
+            return None, 0, 0
 
         llm_final_answers = extract_boxed.extract_final_answer_allform(answers, answer_type='list')
         if llm_final_answers:
             break
 
-        print(f"Attempt {attempt + 1}: No valid boxed content. Retrying...")
-
     if not llm_final_answers:
-        print(f"Skipping entry ID {entry_id} due to missing boxed content after {max_retries} attempts.")
-        return None, sympy_errors_correct_llm_total, sympy_errors_total
+        return None, 0, 0
 
     flattened_answers = [item for sublist in llm_final_answers for item in sublist] if isinstance(llm_final_answers[0], list) else llm_final_answers
     equivalency_results = []
     correct_count = 0
+    sympy_errors_correct_llm = 0
+    sympy_errors = 0
 
     for llm_answer in flattened_answers:
         matched = False
@@ -89,14 +88,13 @@ async def process_entry(entry, llm, sympy_errors_correct_llm_total, sympy_errors
 
             sympy_result = equivalency_data.get("sympy_result")
             llm_result = equivalency_data.get("llm_result")
-            final_result = equivalency_data.get("final_result")
 
             if sympy_result is False and llm_result is True:
-                sympy_errors_correct_llm_total += 1
+                sympy_errors_correct_llm += 1
             if sympy_result is not None:
-                sympy_errors_total += 1
+                sympy_errors += 1
 
-            if final_result == True: 
+            if equivalency_data.get("final_result") == True:
                 correct_count += 1
                 matched = True
                 break
@@ -112,7 +110,7 @@ async def process_entry(entry, llm, sympy_errors_correct_llm_total, sympy_errors
         "final_answers": flattened_answers,
         "equivalency_results": equivalency_results,
         "accuracy": accuracy
-    }, sympy_errors_correct_llm_total, sympy_errors_total
+    }, sympy_errors_correct_llm, sympy_errors
 
 async def process_jsonl_and_generate_answers(input_jsonl, output_dir, max_lines=30, llm="gpt-4o"):
     os.makedirs(output_dir, exist_ok=True)
@@ -134,16 +132,15 @@ async def process_jsonl_and_generate_answers(input_jsonl, output_dir, max_lines=
         if idx >= max_lines:
             break
         data = json.loads(line.strip())
-        tasks.append(process_entry(data, llm, sympy_errors_correct_llm_total, sympy_errors_total))
+        tasks.append(process_entry(data, llm))
 
-    entries = await asyncio.gather(*tasks)
-    for entry_result in entries:
+    for entry_result in tqdm(asyncio.as_completed(tasks), total=len(tasks), desc="Processing entries"):
+        entry_result = await entry_result
         if entry_result[0]:
             results.append(entry_result[0])
             accuracies.append(entry_result[0]["accuracy"])
-            sympy_errors_correct_llm_total = entry_result[1]
-            sympy_errors_total = entry_result[2]
-            print(sympy_errors_correct_llm_total, sympy_errors_total)
+            sympy_errors_correct_llm_total += entry_result[1]
+            sympy_errors_total += entry_result[2]
 
     overall_accuracy = sum(accuracies) / len(accuracies) if accuracies else 0.0
     variance = statistics.variance(accuracies) if len(accuracies) > 1 else 0.0
@@ -177,15 +174,18 @@ async def process_jsonl_and_generate_answers(input_jsonl, output_dir, max_lines=
     plt.ylabel("Correctness")
     plt.legend()
     plt.savefig(performance_plot)
-    plt.show()
 
     print(f"Results saved to {output_jsonl}, summary to {summary_csv}, scores to {score_csv}, and plot to {performance_plot}.")
 
 # Example Usage
+def main(category, max_lines=5):
+    llm = "Qwen/Qwen2.5-72B-Instruct"
+    input_jsonl = f"datasets/{category}_dataset_textonly.jsonl"
+    output_dir = f"{category}/Qwen2-5-72B-Instruct-Turbo_output"
+
+    asyncio.run(process_jsonl_and_generate_answers(input_jsonl, output_dir, max_lines, llm))
+
 if __name__ == "__main__":
     category = "mechanics"
-    llm = "gemini-1.5-pro"
-    input_jsonl = f"{category}_dataset.jsonl"
-    output_dir = f"{category}_gemini_output"
-
-    asyncio.run(process_jsonl_and_generate_answers(input_jsonl, output_dir, max_lines=10, llm=llm))
+    max_lines = 250
+    main(category, max_lines)

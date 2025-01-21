@@ -1,8 +1,8 @@
 import json
 
 # 定义输入和输出文件路径
-input_jsonl_path = "mechanics_dataset.jsonl"  # 替换为你的实际输入文件路径
-output_jsonl_path = "mechanics_dataset_textonly.jsonl"  # 替换为你希望输出的文件路径
+input_jsonl_path = "datasets/statistics_dataset.jsonl"  # 替换为你的实际输入文件路径
+output_jsonl_path = "datasets/statistics_dataset_textonly.jsonl"  # 替换为你希望输出的文件路径
 
 # 打开输入 JSONL 文件，筛选出 graph 为 None 的元素
 filtered_entries = []
