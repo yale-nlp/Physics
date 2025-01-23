@@ -46,7 +46,7 @@ def process_entry(entry, llm, max_retries=3):
     llm_messages = []
     if questions:
         llm_messages.append({"type": "text", "text": questions})
-    if graphs:
+    if graphs and isinstance(graphs, list):  # 确保 graphs 是可迭代对象
         llm_messages.extend(graphs)
     if not llm_messages:
         return None, 0, 0
@@ -181,6 +181,6 @@ def main(category, max_lines=5):
     process_jsonl_and_generate_answers(input_jsonl, output_dir, max_lines, llm)
 
 if __name__ == "__main__":
-    category = "mechanics"
+    category = "electro"
     max_lines = 250
     main(category, max_lines)

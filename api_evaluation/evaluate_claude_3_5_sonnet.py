@@ -195,6 +195,6 @@ def main(category, max_lines=5):
     asyncio.run(process_jsonl_and_generate_answers(input_jsonl, output_dir, max_lines, llm))
 
 if __name__ == "__main__":
-    category = "mechanics"
+    category = "electro"
     max_lines=250
     main(category, max_lines)
