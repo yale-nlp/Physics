@@ -33,6 +33,7 @@ async def ask_llm_with_retries(llm_messages, max_retries=3, delay=2, llm="gpt-4o
             )
             return response.choices[0].message.content.strip()
         except Exception as e:
+            print(f"Attempt {attempt + 1} failed: {e}")
             if attempt < max_retries - 1:
                 await asyncio.sleep(delay)
     return None
