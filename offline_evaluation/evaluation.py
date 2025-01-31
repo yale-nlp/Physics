@@ -167,8 +167,8 @@ class VLLMPhysicsEvaluator:
 
 if __name__ == "__main__":
     evaluator = VLLMPhysicsEvaluator(
-        base_output_dir="project/Kaiyue/offline_outputs",
-        dataset_dir="project/Kaiyue/datasets",
+        base_output_dir="offline_outputs",
+        dataset_dir="datasets",
         num_workers=16,  # 并行评估数据条目
         timeout=30  # 设置单条数据的最大执行时间
     )

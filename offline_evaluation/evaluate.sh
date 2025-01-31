@@ -5,22 +5,22 @@ set -e
 
 # 设置默认参数
 MODEL_NAME="deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
-DOWNLOAD_DIR="scratch/kaiyue_hf_cache"
-OUTPUT_DIR="project/Kaiyue/offline_outputs/DeepSeek_R1_Distill_Qwen_32B_outputs"
+DOWNLOAD_DIR="scratch"
+OUTPUT_DIR="offline_outputs/DeepSeek_R1_Distill_Qwen_32B_outputs"
 MAX_LINES=1500
 
 # 定义数据集路径列表
 DATASET_LIST=(
-    "project/Kaiyue/datasets/atomic_dataset_textonly.jsonl"
-    "project/Kaiyue/datasets/electro_dataset_textonly.jsonl"
-    "project/Kaiyue/datasets/mechanics_dataset_textonly.jsonl"
-    "project/Kaiyue/datasets/optics_dataset_textonly.jsonl"
-    "project/Kaiyue/datasets/quantum_dataset_textonly.jsonl"
-    "project/Kaiyue/datasets/statistics_dataset_textonly.jsonl"
+    "datasets/atomic_dataset_textonly.jsonl"
+    "datasets/electro_dataset_textonly.jsonl"
+    "datasets/mechanics_dataset_textonly.jsonl"
+    "datasets/optics_dataset_textonly.jsonl"
+    "datasets/quantum_dataset_textonly.jsonl"
+    "datasets/statistics_dataset_textonly.jsonl"
 )
 
 # 确保双引号闭合，传递正确的参数
-nohup ~/miniconda3/envs/kaiyue/bin/python project/Kaiyue/get_answer.py \
+nohup python get_answer.py \
     --model_name "$MODEL_NAME" \
     --download_dir "$DOWNLOAD_DIR" \
     --output_dir "$OUTPUT_DIR" \
