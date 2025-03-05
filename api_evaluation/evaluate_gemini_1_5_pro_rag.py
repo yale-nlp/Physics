@@ -24,7 +24,7 @@ client = AsyncOpenAI(
     api_key= "Your API Key"
 )
 
-SERPAPI_KEY = '3b6f6f97907f74a3e69edcc8f40b983a165f1f3b67dbece3233e7b10de15bea4'  # Consider moving this to your .env file
+SERPAPI_KEY = 'your_own_key'  # Consider moving this to your .env file
 
 # ------------------------- Step 1: LLM Generates Google Search Queries -------------------------
 async def generate_google_query(question_text, llm="gpt-4o"):
