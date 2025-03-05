@@ -9,8 +9,7 @@ from openai import OpenAI
 
 client = OpenAI(
     base_url="https://api.openai.com/v1",
-    api_key= "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"
-
+    api_key= os.getenv("OPENAI_API_KEY")
 )
 
 def timeout_handler(signum, frame):
