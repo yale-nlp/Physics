@@ -44,20 +44,6 @@ PHYSICS is a comprehensive benchmark designed to evaluate foundation models' abi
 - **Prompting Methods**: Self-reflection prompts improve model performance but do not fully bridge the gap.
 - **Retrieval-Augmented Generation (RAG)**: Incorporating external knowledge sources enhances model accuracy, suggesting potential future improvements.
 
-## How to Use
-1. Clone the repository:
-   ```sh
-   git clone https://github.com/yale-nlp/Physics.git
-   ```
-2. Install dependencies:
-   ```sh
-   pip install -r requirements.txt
-   ```
-3. Run the evaluation system:
-   ```sh
-   python evaluate.py --model <model_name>
-   ```
-
 ## Future Work
 - Improve model reasoning frameworks for scientific domains.
 - Enhance integration of external knowledge sources for domain-specific problem solving.
