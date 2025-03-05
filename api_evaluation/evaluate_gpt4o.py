@@ -18,10 +18,10 @@ import aiofiles
 load_dotenv()
 
 # Initialize OpenAI client
-os.environ["OPENAI_BASE_URL"] = "https://yanlp.zeabur.app/v1"
-os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-
-client = AsyncOpenAI()
+client = AsyncOpenAI(
+    base_url="https://api.openai.com/v1",
+    api_key= os.getenv("OPENAI_API_KEY")
+)
 
 async def ask_llm_with_retries(llm_messages, max_retries=3, delay=2, llm="gpt-4o"):
     for attempt in range(max_retries):
@@ -213,9 +213,14 @@ def main(llm, base_output_dir, input_jsonl_list, max_lines=1500):
 if __name__ == "__main__":
     llm = "gpt-4o"
     base_output_dir = f"api_output/{llm}_output"
-    input_jsonl_list = ["datasets/atomic_dataset.jsonl", "datasets/electro_dataset.jsonl", 
-                        "datasets/mechanics_dataset.jsonl", "datasets/optics_dataset.jsonl",
-                        "datasets/quantum_dataset.jsonl", "datasets/statistics_dataset.jsonl"]
+    input_jsonl_list = [
+                        "datasets/atomic_dataset.jsonl",
+                        # "datasets/electro_dataset.jsonl", 
+                        # "datasets/mechanics_dataset.jsonl", 
+                        # "datasets/optics_dataset.jsonl",
+                        # "datasets/quantum_dataset.jsonl", 
+                        # "datasets/statistics_dataset.jsonl"
+                        ]
     max_lines = 1500
     main(llm, base_output_dir, input_jsonl_list, max_lines)
 

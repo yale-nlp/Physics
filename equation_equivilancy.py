@@ -6,9 +6,12 @@ import os
 from openai import OpenAI
 
 # Initialize OpenAI client
-os.environ["OPENAI_BASE_URL"] = "https://yanlp.zeabur.app/v1"
-os.environ["OPENAI_API_KEY"] = 'sk-UalnCx6d8J63A0cTAf3c3fA14a54499bA3Ce29A23cD1242b'
-client = OpenAI()
+
+client = OpenAI(
+    base_url="https://api.openai.com/v1",
+    api_key= "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"
+
+)
 
 def timeout_handler(signum, frame):
     """Handler for timeout protection."""

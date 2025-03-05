@@ -4,11 +4,15 @@ from sympy.parsing.latex import parse_latex
 import re
 import os
 from openai import OpenAI
+from dotenv import load_dotenv
+load_dotenv()
 
 # Initialize OpenAI client
-os.environ["OPENAI_BASE_URL"] = "https://yanlp.zeabur.app/v1"
-os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-client = OpenAI()
+
+client = OpenAI(
+    base_url="https://api.openai.com/v1",
+    api_key= os.getenv("OPENAI_API_KEY")
+)
 
 def timeout_handler(signum, frame):
     """Handler for timeout protection."""

@@ -130,7 +130,7 @@ async def process_entry(entry, llm, max_retries=3):
         "accuracy": accuracy
     }, sympy_errors_correct_llm, sympy_errors
 
-async def process_jsonl(input_jsonl, output_dir, max_lines=1500, llm="gpt-4o", batch_size=16):
+async def process_jsonl(input_jsonl, output_dir, max_lines=1500, llm="gpt-4o", batch_size=8):
     os.makedirs(output_dir, exist_ok=True)
     output_jsonl = os.path.join(output_dir, "response.jsonl")
     summary_csv = os.path.join(output_dir, "accuracy.csv")

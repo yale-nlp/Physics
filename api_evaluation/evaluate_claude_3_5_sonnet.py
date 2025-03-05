@@ -19,8 +19,8 @@ import aiofiles
 load_dotenv()
 
 # Initialize OpenAI client
-os.environ["OPENAI_BASE_URL"] = "https://yanlp.zeabur.app/v1"
-os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
+os.environ["OPENAI_BASE_URL"] = "Your Base URL"
+os.environ["OPENAI_API_KEY"] = "Your API Key"
 client = AsyncOpenAI()
 
 async def ask_llm_with_retries(llm_messages, max_retries=3, delay=2, llm="gpt-4o"):
