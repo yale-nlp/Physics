@@ -1,56 +1,106 @@
-# PHYSICS: Benchmarking Foundation Models for PhD-Qualifying Exam Physics Problem Solving
+# PHYSICS: A Comprehensive Benchmark for Advanced Physics Reasoning
 
 ## Overview
-PHYSICS is a comprehensive benchmark designed to evaluate foundation models' ability to solve physics problems at the PhD-qualifying exam level. The dataset consists of 1,297 expert-annotated problems spanning six core physics domains, requiring advanced mathematical reasoning and theoretical knowledge.
+PHYSICS is a high-level physics problem-solving benchmark designed to assess the reasoning and analytical capabilities of foundation models. The dataset contains 1,297 PhD-qualifying exam problems spanning six fundamental physics disciplines.
 
-## Features
-- **Expert-Annotated Problems**: Covers six major physics disciplines:
+## Key Features
+
+- **Dataset Size**: 1,297 problems
+- **Problem Domains**:
   - Classical Mechanics
   - Quantum Mechanics
-  - Thermodynamics and Statistical Mechanics
+  - Thermodynamics & Statistical Mechanics
   - Electromagnetism
   - Atomic Physics
   - Optics
-- **Advanced Multi-Step Reasoning**: The problems demand deep logical reasoning, theoretical understanding, and mathematical modeling.
+- **Problem Complexity**: Requires deep mathematical modeling and multi-step logical reasoning.
 - **Automated Evaluation System**:
-  - Uses SymPy for symbolic computation-based correctness checking.
-  - Leverages GPT-4o for natural language answer assessment.
-- **Model Performance Benchmarking**: Evaluates 33 frontier foundation models, including proprietary (e.g., GPT-4o, Gemini-1.5-Pro) and open-source models (e.g., DeepSeek-R1, Llama-3.3-70B).
-- **Comparative Performance Analysis**:
-  - Best-performing model (o3-mini) achieves only **59.9% accuracy**.
-  - Most open-source models struggle significantly, highlighting current limitations in AI-driven physics problem solving.
+  - Uses SymPy for symbolic verification
+  - GPT-4o-based natural language answer validation
+- **Benchmarking Across 33 Models**:
+  - Proprietary models (e.g., GPT-4o, Gemini-1.5-Pro)
+  - Open-source models (e.g., DeepSeek-R1, Llama-3.3-70B)
+- **Performance Gap Analysis**:
+  - Best-performing model achieves only **59.9% accuracy**
+  - Open-source models struggle significantly, revealing gaps in physics problem-solving abilities.
 
-## Dataset
-- **Total Problems**: 1,297
-- **Validation Set**: 297 problems
-- **Test Set**: 1,000 problems
-- **Problems with Figures**: 298
-- **Average Solution Length**: 234.75 words
-- **Average Reasoning Steps**: 5.38
+## Data Collection
+- **Sources**: Publicly available PhD-qualifying exam questions
+- **Annotation Process**:
+  - Structured review by expert annotators
+  - Strict data quality control
+- **Evaluation Metrics**:
+  - Problem complexity classification
+  - Multi-step reasoning depth assessment
 
-## Evaluation Methodology
-1. **Model Response Processing**: Extracts final boxed answers, standardizes notations, and ensures consistency.
-2. **Mathematical Verification**: Uses SymPy to check symbolic equivalence of mathematical expressions.
-3. **Natural Language Evaluation**: Applies GPT-4o to verify logical correctness and conceptual clarity.
-4. **Error Categorization**: Identifies common failure patterns, including:
-   - Inability to integrate professional knowledge
-   - Reliance on incorrect assumptions
-   - Misinterpretation of problem constraints
-   - Calculation errors in complex equations
+## Benchmark Comparison
 
-## Experiment Findings
-- **Proprietary Models**: o3-mini outperforms others but still struggles with multi-step reasoning and complex mathematical formulations.
-- **Open-Source Models**: Most models perform below 30%, revealing substantial gaps in physics problem-solving ability.
-- **Prompting Methods**: Self-reflection prompts improve model performance but do not fully bridge the gap.
-- **Retrieval-Augmented Generation (RAG)**: Incorporating external knowledge sources enhances model accuracy, suggesting potential future improvements.
+| Benchmark      | Multi-modal | Size  | Level | Question Type | Evaluation | Reasoning Steps |
+| ------------- | ----------- | ----- | ----- | ------------- | ---------- | --------------- |
+| JEEBench      | ❌           | 515   | CEE   | OE, MC        | Rule-Based | -               |
+| MATH          | ❌           | 12,500 | K12-Comp | OE      | Rule-Based | -               |
+| HARDMATH      | ❌           | 1,466 | Graduate | OE      | Rule + Model | -               |
+| GSM8K         | ❌           | 8,500 | K8    | OE            | Rule-Based | 5               |
+| SciQ          | ❌           | 13,679 | K4-K8 | MC, OE        | Rule-Based | -               |
+| OlympiadBench | ✅           | 2,334 | Comp  | OE            | Rule-Based | 3.7             |
+| PHYSICS       | ✅           | 1,297 | PhD-Qualifying | OE | Rule + Model | 5.7             |
+
+## Evaluation Framework
+
+### Answer-Level Evaluation
+- SymPy-based symbolic equivalence checking
+- LLM-based accuracy verification
+- Weighted scoring based on correctness and complexity
+
+### Step-Level Evaluation
+- Step-by-step reasoning assessment
+- Identification of first error step
+- Error categorization for detailed failure analysis
+
+## Experimental Results
+
+### Proprietary Model Performance
+
+| Model               | Atomic | E&M  | CM   | Optics | QM   | Stats | Overall |
+| ------------------- | ------ | ---- | ---- | ------ | ---- | ----- | ------- |
+| o3-mini            | 52.4   | 64.9 | 59.8 | 51.5   | 66.0 | 60.0  | 59.9    |
+| GPT-4o             | 35.3   | 44.1 | 33.4 | 23.4   | 33.8 | 45.0  | 36.7    |
+| Claude-3.5-Sonnet  | 37.2   | 34.8 | 27.6 | 35.5   | 35.1 | 38.4  | 34.7    |
+
+### Open-Source Model Performance
+
+| Model                  | Atomic | E&M  | CM   | Optics | QM   | Stats | Overall |
+| ---------------------- | ------ | ---- | ---- | ------ | ---- | ----- | ------- |
+| DeepSeek-R1           | 37.0   | 48.6 | 38.3 | 43.1   | 44.5 | 51.5  | 44.3    |
+| Qwen2.5-Math-72B      | 27.0   | 34.8 | 27.3 | 27.4   | 36.2 | 37.0  | 32.2    |
+| Llama-3.3-70B         | 28.2   | 35.8 | 27.9 | 17.2   | 31.4 | 41.3  | 31.5    |
+
+## Key Findings
+- **Current foundation models struggle with complex physics reasoning**
+- **Best models achieve less than 60% accuracy, revealing substantial limitations**
+- **Self-reflection prompts improve reasoning consistency**
+- **Retrieval-Augmented Generation (RAG) enhances accuracy**
+
+## How to Use
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/yale-nlp/Physics.git
+   ```
+2. Install dependencies:
+   ```sh
+   pip install -r requirements.txt
+   ```
+3. Run the evaluation system:
+   ```sh
+   python evaluate.py --model <model_name>
+   ```
 
 ## Future Work
-- Improve model reasoning frameworks for scientific domains.
-- Enhance integration of external knowledge sources for domain-specific problem solving.
-- Expand dataset to include interdisciplinary physics problems.
+- **Improve reasoning capabilities for physics problem-solving**
+- **Integrate external physics knowledge for enhanced AI comprehension**
+- **Expand dataset coverage to include interdisciplinary problems**
 
 ## Citation
-If you use PHYSICS in your research, please cite:
 ```
 @article{feng2025physics,
   title={PHYSICS: Benchmarking Foundation Models for PhD-Qualifying Exam Physics Problem Solving},
