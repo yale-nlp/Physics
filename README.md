@@ -35,15 +35,34 @@ PHYSICS is a high-level physics problem-solving benchmark designed to assess the
 
 ## Benchmark Comparison
 
-| Benchmark      | Multi-modal | Size  | Level | Question Type | Evaluation | Reasoning Steps |
-| ------------- | ----------- | ----- | ----- | ------------- | ---------- | --------------- |
-| JEEBench      | ❌           | 515   | CEE   | OE, MC        | Rule-Based | -               |
-| MATH          | ❌           | 12,500 | K12-Comp | OE      | Rule-Based | -               |
-| HARDMATH      | ❌           | 1,466 | Graduate | OE      | Rule + Model | -               |
-| GSM8K         | ❌           | 8,500 | K8    | OE            | Rule-Based | 5               |
-| SciQ          | ❌           | 13,679 | K4-K8 | MC, OE        | Rule-Based | -               |
-| OlympiadBench | ✅           | 2,334 | Comp  | OE            | Rule-Based | 3.7             |
-| PHYSICS       | ✅           | 1,297 | PhD-Qualifying | OE | Rule + Model | 5.7             |
+| Benchmark                        | Multi-modal | Size  | Level           | Question Type | Evaluation     | Reasoning Steps |
+|----------------------------------|------------|-------|----------------|---------------|---------------|----------------|
+| **JEEBench**                     | ❌        | 515   | CEE            | OE, MC        | Rule-Based    | -              |
+| **MATH**                         | ❌        | 12,500| K12-Comp       | OE            | Rule-Based    | -              |
+| **HARDMath**                     | ❌        | 1,466 | Graduate       | OE            | Rule + Model  | -              |
+| **GSM8K**                        | ❌        | 8,500 | K8             | OE            | Rule-Based    | 5.0            |
+| **GPQA**                         | ❌        | 227   | Graduate       | OE            | Rule-Based    | 3.6            |
+| *SciQ*                           | ❌        | 13,679| K4-K8          | MC, OE        | Rule-Based    | -              |
+| *SciEval*                        | ❌        | 1,657 | -              | OE, MC        | Rule-Based    | -              |
+| **SciBench**                     | ✅        | 295   | College        | OE            | Rule-Based    | 2.8            |
+| *MMMU*                           | ✅        | 443   | College        | OE, MC        | Rule-Based    | -              |
+| *MMMU-Pro*                       | ✅        | 3,460 | College        | MC            | Rule-Based    | -              |
+| **ScienceQA**                    | ✅        | 617   | K1-K12         | MC            | Rule-Based    | 2.4            |
+| **OlympiadBench**                | ✅        | 2,334 | Comp           | OE            | Rule-Based    | 3.7            |
+| **PutnamBench**                  | ❌        | 1,692 | College        | OE            | Rule-Based    | -              |
+| **Ours**                         | ✅        | 1,297 | PhD-Qualifying | OE            | Rule + Model  | 5.7            |
+
+**Legend**:
+- **Level**:  
+  - *Comp*: Competition  
+  - *College*: College Level  
+  - *CEE*: College Entrance Examination  
+  - *K1-K12*: Elementary and High School Level  
+- **Question Type**:  
+  - *OE*: Open-ended Questions  
+  - *MC*: Multiple-choice Questions  
+- **Reasoning Steps**: Based on statistics from corresponding papers.
+
 
 ## Evaluation Framework
 
@@ -67,7 +86,6 @@ PHYSICS is a high-level physics problem-solving benchmark designed to assess the
 | Gemini-1.5-pro†                | 35.5 | 40.2 | 31.5 | 32.2 | 44.5 | 43.7   | 35.3 | 38.4  |
 | GPT-4o†                        | 35.3 | 44.1 | 33.4 | 23.4 | 33.8 | 45.0   | 34.7 | 36.7  |
 | Claude-3.5-Sonnet†             | 37.2 | 34.8 | 27.6 | 35.5 | 35.1 | 38.4   | 31.7 | 34.7  |
-
 | **Open-Source Models**         |      |      |      |      |      |        |      |       |
 | DeepSeek-R1                    | 37.0 | 48.6 | 38.3 | 43.1 | 44.5 | 51.5   | 44.2 | 44.3  |
 | Qwen2.5-Math-72B               | 27.0 | 34.8 | 27.3 | 27.4 | 36.2 | 37.0   | 38.5 | 32.2  |
@@ -108,38 +126,13 @@ PHYSICS is a high-level physics problem-solving benchmark designed to assess the
 - **Self-reflection prompts improve reasoning consistency**
 - **Retrieval-Augmented Generation (RAG) enhances accuracy**
 
-## How to Use
-1. Clone the repository:
-   ```sh
-   git clone https://github.com/yale-nlp/Physics.git
-   ```
-2. Install dependencies:
-   ```sh
-   pip install -r requirements.txt
-   ```
-3. Run the evaluation system:
-   ```sh
-   python evaluate.py --model <model_name>
-   ```
-
-## Future Work
-- **Improve reasoning capabilities for physics problem-solving**
-- **Integrate external physics knowledge for enhanced AI comprehension**
-- **Expand dataset coverage to include interdisciplinary problems**
 
 ## Citation
 ```
-@article{feng2025physics,
-  title={PHYSICS: Benchmarking Foundation Models for PhD-Qualifying Exam Physics Problem Solving},
-  author={Kaiyue Feng and Yilun Zhao and Yixin Liu and Tianyu Yang and Chen Zhao and John Sous and Arman Cohan},
-  journal={arXiv preprint arXiv:2501.12948},
-  year={2025}
-}
+
 ```
 
 ## License
 This project is licensed under the MIT License.
 
-## Acknowledgments
-This work is supported by the NVIDIA Academic Grant Program and Google TRC. Special thanks to Together AI for providing API credits.
 
