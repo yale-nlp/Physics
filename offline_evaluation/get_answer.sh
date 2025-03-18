@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# 确保脚本出错时退出
+# Ensure the script exits if an error occurs
 set -e
 
-# 设置默认参数
+# Set default parameters
 MODEL_NAME="deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
 DOWNLOAD_DIR="scratch"
 OUTPUT_DIR="offline_outputs/DeepSeek_R1_Distill_Qwen_32B_outputs"
 MAX_LINES=1500
 
-# 定义数据集路径列表
+# Define the list of dataset paths
 DATASET_LIST=(
     "datasets/atomic_dataset_textonly.jsonl"
     "datasets/electro_dataset_textonly.jsonl"
@@ -19,7 +19,7 @@ DATASET_LIST=(
     "datasets/statistics_dataset_textonly.jsonl"
 )
 
-# 确保双引号闭合，传递正确的参数
+# Ensure double quotes are properly closed and pass correct parameters
 nohup python get_answer.py \
     --model_name "$MODEL_NAME" \
     --download_dir "$DOWNLOAD_DIR" \

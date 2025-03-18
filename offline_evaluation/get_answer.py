@@ -16,7 +16,6 @@ class VLLMPhysicsPipeline:
         self.output_dir = output_dir
         self.max_lines = max_lines
         
-
         # Initialize vLLM engine
         if 'Deepseek-V2' in model_name:
             self.engine = LLM(
@@ -35,16 +34,6 @@ class VLLMPhysicsPipeline:
                 download_dir=self.download_dir,
                 trust_remote_code=True,
             )
-        # elif ('awq' in model_name) or ('AWQ' in model_name):
-        #     self.engine = LLM(
-        #         model=self.model_name,
-        #         tensor_parallel_size=torch.cuda.device_count(),
-        #         kv_cache_dtype="auto",
-        #         download_dir=self.download_dir,
-        #         trust_remote_code=True,
-        #         quantization= 'awq',
-        #         dtype = 'half',
-        #     )
         if ('Llama-3.2-11B-Vision') in model_name:
             # Special handling for Llama-3.2-11B-Vision-Instruct-bnb-4bit
             self.engine = LLM(
@@ -67,17 +56,14 @@ class VLLMPhysicsPipeline:
                 trust_remote_code=True,
                 tokenizer_mode='mistral',
             )
-            
         else:
             self.engine = LLM(
                 model=self.model_name,
                 tensor_parallel_size=torch.cuda.device_count(),
                 kv_cache_dtype="auto",
-                # max_model_len=8192,
                 download_dir=self.download_dir,
                 trust_remote_code=True,
             )
-        
         
         print("vLLM engine initialized.")
 
@@ -122,7 +108,7 @@ class VLLMPhysicsPipeline:
         with open(dataset_path, "r") as file:
             lines = file.readlines()
 
-        # 1) 收集所有数据（或按 max_lines 限制）
+        # 1) Collect all data (or limit to max_lines)
         all_data = []
         for idx, line in enumerate(lines):
             if idx >= self.max_lines:
@@ -130,7 +116,7 @@ class VLLMPhysicsPipeline:
             data = json.loads(line.strip())
             all_data.append(data)
 
-        # 2) 构建发送给 vLLM 的批量消息
+        # 2) Construct batch messages for vLLM
         llm_messages_batch = []
         results = []
 
@@ -139,7 +125,7 @@ class VLLMPhysicsPipeline:
             questions = entry.get("questions", "")
             graphs = entry.get("graphs", [])
 
-            # 构造要发送给 LLM 的对话内容
+            # Construct conversation content to send to LLM
             user_content = []
             if questions:
                 user_content.append({"type": "text", "text": questions})
@@ -152,17 +138,17 @@ class VLLMPhysicsPipeline:
                     "content": (
                         "You are an AI expert specializing in answering advanced physics questions. "
                         "Think step by step and provide solution and final answer. "
-                        "Provide the final answer at the end in Latex boxed format \\[\\boxed{}\\]."
-                        "Example: \\[ \\boxed{ final_answer} \\]"
+                        "Provide the final answer at the end in Latex boxed format \[\boxed{}\]."
+                        "Example: \[ \boxed{ final_answer} \]"
                     ),
                 },
                 {"role": "user", "content": user_content},
             ])
 
-        # 3) 执行批量推理（vLLM 内部自动进行动态批处理）
+        # 3) Execute batch inference (vLLM internally handles dynamic batching)
         responses = self.ask_llm_with_retries(llm_messages_batch)
 
-        # 4) 将推理结果与原始输入对应起来并输出
+        # 4) Match inference results with original input and output
         for entry, answer in zip(all_data, responses):
             result = {
                 "id": entry.get("id"),
@@ -172,7 +158,7 @@ class VLLMPhysicsPipeline:
             }
             results.append(result)
 
-        # 5) 将结果写回到 JSONL 文件
+        # 5) Write results back to JSONL file
         with open(output_jsonl, "w", encoding="utf-8") as outfile:
             for result in results:
                 json.dump(result, outfile, ensure_ascii=False)
@@ -195,15 +181,9 @@ def cleanup_gpu():
     except Exception as e:
         print(f"Failed to release GPU memory: {e}")
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run vLLM Physics Pipeline.")
-    parser.add_argument("--model_name", type=str, required=True, help="Name of the model to use.")
-    parser.add_argument("--download_dir", type=str, required=True, help="Directory to cache downloaded model files.")
-    parser.add_argument("--output_dir", type=str, required=True, help="Directory to save output results.")
-    parser.add_argument("--dataset_list", type=str, nargs='+', required=True, help="List of paths to input JSONL datasets.")
-    parser.add_argument("--max_lines", type=int, default=30, help="Maximum number of lines to process from each dataset.")
-
+    # Command-line argument parsing
     args = parser.parse_args()
 
     atexit.register(cleanup_gpu)
@@ -215,13 +195,11 @@ if __name__ == "__main__":
             output_dir=args.output_dir,
             max_lines=args.max_lines,
         )
-
         pipeline.process_jsonl_list(args.dataset_list)
 
     except Exception as e:
         print("An error occurred:", e)
         traceback.print_exc()
         sys.exit(1)
-
     finally:
         cleanup_gpu()

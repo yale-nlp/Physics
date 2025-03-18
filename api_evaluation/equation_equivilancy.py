@@ -8,10 +8,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Initialize OpenAI client
-
 client = OpenAI(
     base_url="https://api.openai.com/v1",
-    api_key= os.getenv("OPENAI_API_KEY")
+    api_key=os.getenv("OPENAI_API_KEY")
 )
 
 def timeout_handler(signum, frame):
@@ -20,8 +19,8 @@ def timeout_handler(signum, frame):
 
 def _extract_core_eq(expr: str) -> str:
     """Extract the right-hand side of an equation or implication from a LaTeX expression."""
-    if "\\implies" in expr:
-        expr = expr.split("\\implies")[-1].strip()
+    if "\implies" in expr:
+        expr = expr.split("\implies")[-1].strip()
     if "=" in expr:
         expr = expr.split("=")[-1].strip()
     return expr
@@ -33,22 +32,22 @@ def _preprocess_latex(string: str) -> str:
     
     string = re.sub(r"_\{.*?\}", "", string)
     string = re.sub(r"_\\?\w", "", string)
-    string = string.replace("\\left", "").replace("\\right", "").replace("\\cdot", "*")
+    string = string.replace("\left", "").replace("\right", "").replace("\cdot", "*")
     return string
 
 def _standardize_expr(expr):
     """Standardize a SymPy expression with timeout protection."""
     try:
-        signal.signal(signal.SIGALRM, timeout_handler)  # 设置超时信号
-        signal.alarm(10)  # 设定超时10秒
+        signal.signal(signal.SIGALRM, timeout_handler)  # Set timeout signal
+        signal.alarm(10)  # Set timeout to 10 seconds
         result = simplify(expand(trigsimp(expr)))
-        signal.alarm(0)  # 取消超时
+        signal.alarm(0)  # Cancel timeout
         return result
     except TimeoutError:
-        signal.alarm(0)  # 取消超时
+        signal.alarm(0)  # Cancel timeout
         raise ValueError("SymPy computation timed out!")
     except Exception as e:
-        signal.alarm(0)  # 取消超时
+        signal.alarm(0)  # Cancel timeout
         raise ValueError(f"SymPy error: {e}")
 
 def call_llm_to_compare(expr1: str, expr2: str) -> bool:
@@ -79,7 +78,7 @@ def is_equiv(expr1: str, expr2: str, verbose: bool = False) -> dict:
     }
     
     try:
-        if "\\text" in expr1 or "\\text" in expr2:
+        if "\text" in expr1 or "\text" in expr2:
             result_data["llm_result"] = call_llm_to_compare(expr1, expr2)
             result_data["final_result"] = result_data["llm_result"]
             return result_data
@@ -94,18 +93,18 @@ def is_equiv(expr1: str, expr2: str, verbose: bool = False) -> dict:
             sympy_expr2 = _standardize_expr(parse_latex(expr2_core))
             result_data["preprocessed_expressions"] = {"expr1": str(sympy_expr1), "expr2": str(sympy_expr2)}
             
-            # 设置超时防护
+            # Set timeout protection
             signal.signal(signal.SIGALRM, timeout_handler)
-            signal.alarm(10)  # 设定10秒超时
+            signal.alarm(10)  # Set 10-second timeout
             sympy_result = simplify(sympy_expr1 - sympy_expr2) == 0
             sympy_result = sympy_result or sympy_expr1.equals(sympy_expr2)
-            signal.alarm(0)  # 取消超时
+            signal.alarm(0)  # Cancel timeout
         except TimeoutError:
-            signal.alarm(0)  # 取消超时
+            signal.alarm(0)  # Cancel timeout
             result_data["error"] = "SymPy computation timed out!"
             sympy_result = None
         except Exception as e:
-            signal.alarm(0)  # 取消超时
+            signal.alarm(0)  # Cancel timeout
             result_data["error"] = str(e)
             sympy_result = None
         

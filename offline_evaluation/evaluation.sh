@@ -1,14 +1,15 @@
 #!/bin/bash
 
-# 确保脚本出错时退出
+# Ensure the script exits if an error occurs
 set -e
 
-# 定义Python脚本的完整路径
+# Define the full path of the Python script
 PYTHON_SCRIPT="miniconda3/envs/kaiyue/bin/python"
 SCRIPT_PATH="project/Kaiyue/evaluation.py"
 
-# 确保环境变量和路径正确加载
+# Ensure environment variables and paths are loaded correctly
 export PATH="~/miniconda3/envs/kaiyue/bin:$PATH"
 
-# 启动Python脚本，后台运行并记录日志，确保即使前台退出仍继续执行
+# Start the Python script, run in the background, and log output,
+# ensuring it continues execution even if the foreground exits
 nohup $PYTHON_SCRIPT $SCRIPT_PATH > final_eva.out 2>&1 &

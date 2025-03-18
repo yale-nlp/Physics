@@ -8,20 +8,20 @@ import equation_equivilancy
 
 class VLLMPhysicsEvaluator:
     def __init__(self, base_output_dir, dataset_dir, num_workers=4, timeout=30):
-        self.base_output_dir = base_output_dir  # 存放所有 LLM 输出的目录
-        self.dataset_dir = dataset_dir  # 存放所有数据集的目录
-        self.num_workers = num_workers  # 并行处理的进程数
-        self.timeout = timeout  # 单个数据条目的超时时间（秒）
+        self.base_output_dir = base_output_dir  # Directory storing all LLM outputs
+        self.dataset_dir = dataset_dir  # Directory storing all datasets
+        self.num_workers = num_workers  # Number of processes for parallel processing
+        self.timeout = timeout  # Timeout for a single data entry (seconds)
 
     def evaluate_entry(self, entry):
-        """评估单条数据的函数，用于并行处理。如果卡死或失败，返回默认错误数据。"""
+        """Evaluate a single data entry for parallel processing. If stuck or failed, return default error data."""
         try:
             gen_data, dataset_data = entry
             entry_id = gen_data.get("id")
             llm_answers = gen_data.get("llm_answers")
             dataset_answers = dataset_data.get("final_answers", [])
 
-            # 提取 LLM 的最终答案
+            # Extract the final answers from the LLM
             llm_final_answers = extract_boxed.extract_final_answer_allform(llm_answers, answer_type='list')
 
             if not llm_final_answers:
@@ -77,11 +77,11 @@ class VLLMPhysicsEvaluator:
                 "solution": None,
                 "final_answers": [],
                 "equivalency_results": [],
-                "accuracy": 0  # 出错时准确率设为 0
+                "accuracy": 0  # Set accuracy to 0 in case of an error
             }, 0, 0
 
     def process_single_dataset(self, llm_folder, dataset_folder):
-        """处理单个数据集的 response.jsonl，并进行评估。"""
+        """Process a single dataset's response.jsonl and perform evaluation."""
         dataset_output_path = os.path.join(self.base_output_dir, llm_folder, dataset_folder)
         response_file = os.path.join(dataset_output_path, "response.jsonl")
 
@@ -119,7 +119,7 @@ class VLLMPhysicsEvaluator:
                             "solution": None,
                             "final_answers": [],
                             "equivalency_results": [],
-                            "accuracy": 0  # 设为 0
+                            "accuracy": 0  # Set to 0
                         }
                     except Exception as e:
                         print(f"Unexpected error in {dataset_folder} of {llm_folder}: {e}")
@@ -128,7 +128,7 @@ class VLLMPhysicsEvaluator:
                             "solution": None,
                             "final_answers": [],
                             "equivalency_results": [],
-                            "accuracy": 0  # 设为 0
+                            "accuracy": 0  # Set to 0
                         }
 
                     results.append(result)
@@ -152,24 +152,23 @@ class VLLMPhysicsEvaluator:
             print(f"Critical error processing {dataset_folder} in {llm_folder}: {e}")
 
     def process_all_llm_outputs(self):
-        """遍历 base_output_dir 目录，批量处理所有 LLM 生成的 response.jsonl 文件。"""
+        """Iterate through the base_output_dir directory and process all LLM-generated response.jsonl files in bulk."""
         for llm_folder in os.listdir(self.base_output_dir):
             llm_path = os.path.join(self.base_output_dir, llm_folder)
             if not os.path.isdir(llm_path):
-                continue  # 跳过非目录项
+                continue  # Skip non-directory entries
 
             for dataset_folder in os.listdir(llm_path):
                 dataset_path = os.path.join(llm_path, dataset_folder)
                 if not os.path.isdir(dataset_path):
-                    continue  # 跳过非目录项
-                self.process_single_dataset(llm_folder, dataset_folder)  # 串行处理每个数据集
-
+                    continue  # Skip non-directory entries
+                self.process_single_dataset(llm_folder, dataset_folder)  # Process each dataset sequentially
 
 if __name__ == "__main__":
     evaluator = VLLMPhysicsEvaluator(
         base_output_dir="offline_outputs",
         dataset_dir="datasets",
-        num_workers=16,  # 并行评估数据条目
-        timeout=30  # 设置单条数据的最大执行时间
+        num_workers=16,  # Parallel evaluation of data entries
+        timeout=30  # Set maximum execution time per entry
     )
     evaluator.process_all_llm_outputs()
