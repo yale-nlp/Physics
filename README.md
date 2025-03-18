@@ -18,7 +18,7 @@ PHYSICS is a high-level physics problem-solving benchmark designed to assess the
   - Uses SymPy for symbolic verification
   - GPT-4o-based natural language answer validation
 - **Benchmarking Across 33 Models**:
-  - Proprietary models (e.g., GPT-4o, Gemini-1.5-Pro)
+  - Proprietary models (e.g., o3-mini, Gemini-1.5-Pro)
   - Open-source models (e.g., DeepSeek-R1, Llama-3.3-70B)
 - **Performance Gap Analysis**:
   - Best-performing model achieves only **59.9% accuracy**
@@ -30,8 +30,7 @@ PHYSICS is a high-level physics problem-solving benchmark designed to assess the
   - Structured review by expert annotators
   - Strict data quality control
 - **Evaluation Metrics**:
-  - Problem complexity classification
-  - Multi-step reasoning depth assessment
+  - Problem complexity and difficulty classification
 
 ## Benchmark Comparison
 
@@ -121,10 +120,10 @@ PHYSICS is a high-level physics problem-solving benchmark designed to assess the
 **Abbreviations:** AMO (Atomic Physics) | E\&M (Electromagnetism) | CM (Classical Mechanics) | Opt. (Optics) | QM (Quantum Mechanics) | Stats. (Theromodynamics and Statistical Physics).
 
 ## Key Findings
-- **Current foundation models struggle with complex physics reasoning**
-- **Best models achieve less than 60% accuracy, revealing substantial limitations**
-- **Self-reflection prompts improve reasoning consistency**
-- **Retrieval-Augmented Generation (RAG) enhances accuracy**
+- Introduced a **challenging benchmark** with expert-annotated physics problems across six subfields, requiring deep multi-step reasoning and theoretical integration.  
+- Developed a **robust automated evaluation framework** using **SymPy** and **GPT-based assessment** for precise model performance measurement.  
+- Conducted a **comprehensive evaluation** of both **open-source and proprietary models**, analyzing their strengths, weaknesses, and limitations.  
+- Provided **in-depth analysis** of **prompting techniques, Long CoT, failure cases, and RAG-based augmentation** to guide future model improvements.  
 
 
 ## Citation
