@@ -1,0 +1,12 @@
+aiofiles==24.1.0
+google_search_results==2.4.2
+matplotlib==3.8.4
+openai==1.67.0
+python-dotenv==1.0.1
+serpapi==0.1.5
+sympy==1.13.3
+sympy==1.13.1
+together==1.4.6
+torch==2.5.1
+tqdm==4.67.1
+vllm==0.6.6.post1
