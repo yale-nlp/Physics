@@ -4,11 +4,11 @@
 set -e
 
 # Define the full path of the Python script
-PYTHON_SCRIPT=""
-SCRIPT_PATH=""
+PYTHON_SCRIPT="/bin/python"
+SCRIPT_PATH="evaluation.py"
 
 # Ensure environment variables and paths are loaded correctly
-export PATH=""
+export PATH="/bin:$PATH"
 
 # Start the Python script, run in the background, and log output,
 # ensuring it continues execution even if the foreground exits
