@@ -128,6 +128,15 @@ PHYSICS is a high-level physics problem-solving benchmark designed to assess the
 
 ## Citation
 ```
+@misc{feng2025physicsbenchmarkingfoundationmodels,
+      title={PHYSICS: Benchmarking Foundation Models on University-Level Physics Problem Solving}, 
+      author={Kaiyue Feng and Yilun Zhao and Yixin Liu and Tianyu Yang and Chen Zhao and John Sous and Arman Cohan},
+      year={2025},
+      eprint={2503.21821},
+      archivePrefix={arXiv},
+      primaryClass={physics.ed-ph},
+      url={https://arxiv.org/abs/2503.21821}, 
+}
 
 ```
 
