@@ -1,0 +1,12 @@
+============================================================
+力学データセット評価開始
+モデル: gpt-4o
+データセット: ../PHYSICS/mechanics_dataset.jsonl
+最大問題数: 221
+出力先: ../outputs/gpt-4o_mechanics_output
+============================================================
+Starting processing for ../PHYSICS/mechanics_dataset.jsonl...
+Processing mechanics_dataset.jsonl in batches:   0%|          | 0/14 [00:00<?, ?it/s]/Users/takahashiryoutarou/.pyenv/versions/3.11.5/lib/python3.11/site-packages/sympy/parsing/latex/_parse_latex_antlr.py:23: UserWarning: antlr4.error.ErrorListener module is not installed
+  ErrorListener = import_module('antlr4.error.ErrorListener',
+/Users/takahashiryoutarou/.pyenv/versions/3.11.5/lib/python3.11/multiprocessing/resource_tracker.py:224: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

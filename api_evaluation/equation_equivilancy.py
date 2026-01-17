@@ -110,9 +110,13 @@ def is_equiv(expr1: str, expr2: str, verbose: bool = False) -> dict:
         
         result_data["sympy_result"] = sympy_result
         
-        if sympy_result is not None and sympy_result:
-            result_data["final_result"] = sympy_result
+        if sympy_result is True:
+            result_data["final_result"] = True
+        elif sympy_result is False:
+            # SymPyがFalseと判定した場合はLLM比較を呼ばずにFalseを返す（トークン削減）
+            result_data["final_result"] = False
         else:
+            # sympy_result is None（エラー/タイムアウト）の場合のみLLM比較を呼ぶ
             result_data["llm_result"] = call_llm_to_compare(expr1, expr2)
             result_data["final_result"] = result_data["llm_result"]
         
