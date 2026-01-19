@@ -1,0 +1,222 @@
+Entry ID,Accuracy,Prompt Tokens,Completion Tokens,Total Tokens
+mechanics/3_4,0.0,760,862,1622
+mechanics/2_22,1.0,1429,1028,2457
+mechanics/1_9,1.0,143,519,662
+mechanics/2_25,0.0,212,1300,1512
+mechanics/3_3,1.0,383,1221,1604
+mechanics/2_13,0.0,1467,971,2438
+mechanics/1_7,0.0,408,463,871
+mechanics/1_34,0.0,202,951,1153
+mechanics/1_33,0.0,137,1090,1227
+mechanics/2_14,0.0,506,845,1351
+mechanics/1_58,0.0,73,955,1028
+mechanics/1_67,0.0,140,1187,1327
+mechanics/1_93,0.0,981,570,1551
+mechanics/2_40,0.6666666666666666,473,1155,1628
+mechanics/2_47,1.0,462,710,1172
+mechanics/1_94,0.0,419,768,1187
+mechanics/1_60,0.0,119,829,948
+mechanics/1_69,0.0,144,596,740
+mechanics/1_56,0.0,214,843,1057
+mechanics/2_49,0.0,182,1131,1313
+mechanics/1_51,0.6666666666666666,227,1224,1451
+mechanics/2_15,0.0,154,1426,1580
+mechanics/1_1,0.5,149,507,656
+mechanics/1_32,0.5,314,927,1241
+mechanics/1_6,0.0,114,639,753
+mechanics/1_35,1.0,679,1291,1970
+mechanics/2_12,0.0,433,943,1376
+mechanics/3_2,0.0,127,374,501
+mechanics/2_24,0.0,157,918,1075
+mechanics/2_23,0.5,465,862,1327
+mechanics/3_5,0.0,170,773,943
+mechanics/1_8,1.0,132,576,708
+mechanics/2_48,0.0,194,1041,1235
+mechanics/1_50,0.0,250,1028,1278
+mechanics/1_68,1.0,247,874,1121
+mechanics/1_57,0.5,238,715,953
+mechanics/1_61,0.0,92,662,754
+mechanics/2_46,0.0,473,976,1449
+mechanics/1_95,0.0,277,1146,1423
+mechanics/1_59,0.5,229,986,1215
+mechanics/1_92,0.0,428,826,1254
+mechanics/2_41,0.0,464,878,1342
+mechanics/1_66,0.0,188,1200,1388
+mechanics/3_15,0.0,446,618,1064
+mechanics/3_12,0.0,189,972,1161
+mechanics/3_24,0.0,338,1735,2073
+mechanics/3_23,0.2,861,1279,2140
+mechanics/3_48,0.0,180,606,786
+mechanics/3_46,0.0,153,918,1071
+mechanics/3_41,0.3333333333333333,150,1123,1273
+mechanics/3_22,0.0,228,690,918
+mechanics/3_25,0.0,326,1360,1686
+mechanics/3_13,0.0,430,746,1176
+mechanics/3_14,1.0,219,863,1082
+mechanics/3_40,0.0,108,981,1089
+mechanics/3_47,0.0,285,879,1164
+mechanics/3_49,1.0,78,524,602
+mechanics/2_9,0.0,505,725,1230
+mechanics/3_36,0.0,162,1172,1334
+mechanics/3_31,0.0,223,1516,1739
+mechanics/3_38,0.0,147,704,851
+mechanics/2_7,1.0,595,704,1299
+mechanics/2_1,0.0,557,1337,1894
+mechanics/3_39,0.3333333333333333,246,1182,1428
+mechanics/2_6,0.5,227,1437,1664
+mechanics/3_30,0.0,531,1436,1967
+mechanics/2_8,1.0,357,912,1269
+mechanics/3_37,0.0,116,611,727
+mechanics/1_44,0.0,118,796,914
+mechanics/1_43,0,,,
+mechanics/1_88,0,,,
+mechanics/1_75,0.0,94,818,912
+mechanics/1_81,1.0,179,598,777
+mechanics/1_86,0.0,601,726,1327
+mechanics/1_72,0,,,
+mechanics/1_19,1.0,196,985,1181
+mechanics/1_26,0.0,389,884,1273
+mechanics/2_39,0.0,401,765,1166
+mechanics/1_21,1.0,400,638,1038
+mechanics/1_28,0,,,
+mechanics/1_17,0,,,
+mechanics/2_30,0,,,
+mechanics/2_37,0.0,116,974,1090
+mechanics/1_10,0,,,
+mechanics/1_73,0.0,165,1241,1406
+mechanics/1_87,0,,,
+mechanics/1_80,0,,,
+mechanics/1_74,0.0,478,1155,1633
+mechanics/1_42,0,,,
+mechanics/1_89,1.0,226,825,1051
+mechanics/1_45,0,,,
+mechanics/1_11,0,,,
+mechanics/2_36,0,,,
+mechanics/1_29,0,,,
+mechanics/2_31,0.3333333333333333,165,1559,1724
+mechanics/1_16,0,,,
+mechanics/2_38,1.0,110,1848,1958
+mechanics/1_20,0,,,
+mechanics/1_18,0.0,187,581,768
+mechanics/1_27,0,,,
+mechanics/2_44,0,,,
+mechanics/1_97,0,,,
+mechanics/1_63,0,,,
+mechanics/1_64,0.0,409,1106,1515
+mechanics/1_90,0.0,181,1395,1576
+mechanics/2_43,0,,,
+mechanics/1_99,0,,,
+mechanics/1_52,0.0,439,629,1068
+mechanics/1_55,0,,,
+mechanics/2_26,0.0,256,979,1235
+mechanics/2_19,0.0,232,1382,1614
+mechanics/3_7,0.0,139,571,710
+mechanics/2_21,0,,,
+mechanics/1_39,0,,,
+mechanics/1_3,0.0,415,480,895
+mechanics/1_30,0.0,397,730,1127
+mechanics/2_17,0.0,201,1143,1344
+mechanics/2_28,0,,,
+mechanics/2_10,0,,,
+mechanics/1_4,0,,,
+mechanics/1_37,0.0,165,882,1047
+mechanics/3_9,0,,,
+mechanics/1_54,0,,,
+mechanics/1_98,1.0,189,916,1105
+mechanics/1_53,0,,,
+mechanics/1_91,0.0,416,889,1305
+mechanics/2_42,0,,,
+mechanics/1_65,0,,,
+mechanics/1_62,0,,,
+mechanics/2_45,0,,,
+mechanics/1_96,0,,,
+mechanics/1_5,0,,,
+mechanics/1_36,0,,,
+mechanics/2_11,0,,,
+mechanics/3_8,0,,,
+mechanics/2_16,0,,,
+mechanics/1_2,0,,,
+mechanics/1_31,0,,,
+mechanics/2_29,0,,,
+mechanics/2_20,0,,,
+mechanics/3_6,0,,,
+mechanics/1_38,0,,,
+mechanics/3_1,0,,,
+mechanics/2_27,0,,,
+mechanics/2_18,0,,,
+mechanics/3_42,0,,,
+mechanics/3_45,0,,,
+mechanics/3_11,0,,,
+mechanics/3_16,0,,,
+mechanics/3_29,0,,,
+mechanics/3_20,0,,,
+mechanics/3_27,0,,,
+mechanics/3_18,0,,,
+mechanics/3_44,0,,,
+mechanics/3_43,0,,,
+mechanics/3_26,0,,,
+mechanics/3_19,0,,,
+mechanics/3_21,0,,,
+mechanics/3_17,0,,,
+mechanics/3_28,0,,,
+mechanics/3_10,0,,,
+mechanics/3_32,0,,,
+mechanics/3_35,0,,,
+mechanics/2_3,0,,,
+mechanics/2_4,0,,,
+mechanics/3_50,0,,,
+mechanics/2_5,0,,,
+mechanics/2_2,0,,,
+mechanics/3_34,0,,,
+mechanics/3_33,0,,,
+mechanics/1_22,0,,,
+mechanics/1_25,0,,,
+mechanics/2_34,0,,,
+mechanics/1_13,0,,,
+mechanics/1_14,0,,,
+mechanics/2_33,0,,,
+mechanics/1_40,0,,,
+mechanics/1_47,0,,,
+mechanics/1_78,0,,,
+mechanics/1_85,0,,,
+mechanics/1_71,0,,,
+mechanics/1_76,0,,,
+mechanics/1_82,0,,,
+mechanics/1_49,0,,,
+mechanics/2_32,0,,,
+mechanics/1_15,0,,,
+mechanics/1_12,0,,,
+mechanics/2_35,0,,,
+mechanics/1_24,0,,,
+mechanics/1_23,0,,,
+mechanics/2_50,0,,,
+mechanics/1_83,0,,,
+mechanics/1_77,0,,,
+mechanics/1_100,0,,,
+mechanics/1_48,0,,,
+mechanics/1_70,0,,,
+mechanics/1_84,0,,,
+mechanics/1_46,0,,,
+mechanics/1_79,0,,,
+mechanics/1_41,0,,,
+Classical Mechanics/2-1,0,,,
+Classical Mechanics/2-16,0,,,
+Classical Mechanics/2-11,0,,,
+Classical Mechanics/2-6,0,,,
+Classical Mechanics/2-18,0,,,
+Classical Mechanics/2-20,0,,,
+Classical Mechanics/2-8,0,,,
+Classical Mechanics/2-21,0,,,
+Classical Mechanics/2-9,0,,,
+Classical Mechanics/2-19,0,,,
+Classical Mechanics/2-7,0,,,
+Classical Mechanics/2-10,0,,,
+Classical Mechanics/2-17,0,,,
+Classical Mechanics/2-12,0,,,
+Classical Mechanics/2-5,0,,,
+Classical Mechanics/2-2,0,,,
+Classical Mechanics/2-15,0,,,
+Classical Mechanics/2-14,0,,,
+Classical Mechanics/2-3,0,,,
+Classical Mechanics/2-4,0,,,
+Classical Mechanics/2-13,0,,,

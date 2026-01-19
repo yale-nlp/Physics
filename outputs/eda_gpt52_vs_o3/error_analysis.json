@@ -1,0 +1,243 @@
+{
+  "common_errors": [
+    "Classical Mechanics/2-14",
+    "mechanics/3_34",
+    "mechanics/3_36",
+    "mechanics/1_75",
+    "Classical Mechanics/2-9",
+    "mechanics/3_48",
+    "mechanics/3_1",
+    "mechanics/1_100",
+    "mechanics/3_32",
+    "Classical Mechanics/2-11",
+    "mechanics/1_49",
+    "mechanics/1_17",
+    "mechanics/1_12",
+    "mechanics/1_59",
+    "mechanics/1_66",
+    "mechanics/3_39",
+    "mechanics/1_95",
+    "mechanics/3_10",
+    "mechanics/2_24",
+    "mechanics/1_24",
+    "mechanics/1_22",
+    "mechanics/2_48",
+    "mechanics/2_4",
+    "mechanics/3_19",
+    "mechanics/1_6",
+    "mechanics/1_79",
+    "mechanics/1_23",
+    "mechanics/1_68",
+    "mechanics/3_45",
+    "mechanics/1_98",
+    "mechanics/1_69",
+    "mechanics/3_28",
+    "mechanics/1_32",
+    "mechanics/3_8",
+    "mechanics/3_47",
+    "mechanics/1_58",
+    "mechanics/1_55",
+    "mechanics/3_37",
+    "mechanics/1_37",
+    "mechanics/3_46",
+    "mechanics/1_14"
+  ],
+  "gpt52_only_errors": [
+    "mechanics/1_36",
+    "mechanics/2_50",
+    "mechanics/1_94",
+    "Classical Mechanics/2-7",
+    "mechanics/3_15",
+    "Classical Mechanics/2-1",
+    "mechanics/1_21",
+    "mechanics/2_36",
+    "mechanics/1_7",
+    "mechanics/2_13",
+    "mechanics/1_91",
+    "mechanics/1_30",
+    "mechanics/3_20",
+    "mechanics/1_84",
+    "mechanics/1_83",
+    "mechanics/3_13",
+    "mechanics/1_80",
+    "mechanics/1_20",
+    "mechanics/3_49",
+    "mechanics/1_60",
+    "mechanics/1_52",
+    "mechanics/1_4",
+    "mechanics/1_48",
+    "mechanics/1_26",
+    "Classical Mechanics/2-6",
+    "mechanics/2_44",
+    "mechanics/2_45",
+    "mechanics/2_2",
+    "mechanics/3_11",
+    "mechanics/2_6",
+    "mechanics/1_57",
+    "mechanics/3_29",
+    "mechanics/1_51",
+    "mechanics/2_35",
+    "mechanics/3_27",
+    "mechanics/3_44",
+    "mechanics/3_43",
+    "mechanics/1_96",
+    "Classical Mechanics/2-16",
+    "mechanics/1_82",
+    "mechanics/1_73",
+    "mechanics/3_21",
+    "mechanics/2_9",
+    "mechanics/3_7",
+    "mechanics/3_4",
+    "mechanics/1_41",
+    "mechanics/1_93",
+    "mechanics/1_86",
+    "mechanics/1_54",
+    "Classical Mechanics/2-19",
+    "mechanics/2_10",
+    "mechanics/1_87",
+    "mechanics/2_42",
+    "mechanics/3_22",
+    "mechanics/1_5",
+    "mechanics/3_18",
+    "mechanics/1_44",
+    "mechanics/1_71",
+    "mechanics/1_74",
+    "mechanics/1_16",
+    "mechanics/3_24"
+  ],
+  "o3_only_errors": [
+    "mechanics/3_2",
+    "mechanics/3_40",
+    "mechanics/1_65",
+    "mechanics/3_16",
+    "mechanics/3_3",
+    "mechanics/1_2",
+    "mechanics/1_70",
+    "Classical Mechanics/2-3",
+    "mechanics/1_1",
+    "mechanics/3_31",
+    "mechanics/3_25"
+  ],
+  "gpt52_error_details": [
+    {
+      "id": "Classical Mechanics/2-1",
+      "accuracy": 0.0,
+      "num_answers": 1,
+      "num_equivalency": 3
+    },
+    {
+      "id": "Classical Mechanics/2-16",
+      "accuracy": 0.0,
+      "num_answers": 1,
+      "num_equivalency": 2
+    },
+    {
+      "id": "Classical Mechanics/2-19",
+      "accuracy": 0.0,
+      "num_answers": 1,
+      "num_equivalency": 1
+    },
+    {
+      "id": "Classical Mechanics/2-6",
+      "accuracy": 0.0,
+      "num_answers": 1,
+      "num_equivalency": 1
+    },
+    {
+      "id": "Classical Mechanics/2-7",
+      "accuracy": 0.0,
+      "num_answers": 1,
+      "num_equivalency": 1
+    },
+    {
+      "id": "mechanics/1_16",
+      "accuracy": 0.0,
+      "num_answers": 1,
+      "num_equivalency": 4
+    },
+    {
+      "id": "mechanics/1_20",
+      "accuracy": 0.0,
+      "num_answers": 1,
+      "num_equivalency": 3
+    },
+    {
+      "id": "mechanics/1_21",
+      "accuracy": 0.0,
+      "num_answers": 1,
+      "num_equivalency": 1
+    },
+    {
+      "id": "mechanics/1_26",
+      "accuracy": 0.0,
+      "num_answers": 1,
+      "num_equivalency": 2
+    },
+    {
+      "id": "mechanics/1_30",
+      "accuracy": 0.0,
+      "num_answers": 1,
+      "num_equivalency": 2
+    },
+    {
+      "id": "mechanics/1_36",
+      "accuracy": 0.0,
+      "num_answers": 1,
+      "num_equivalency": 1
+    },
+    {
+      "id": "mechanics/1_4",
+      "accuracy": 0.0,
+      "num_answers": 1,
+      "num_equivalency": 2
+    },
+    {
+      "id": "mechanics/1_41",
+      "accuracy": 0.0,
+      "num_answers": 1,
+      "num_equivalency": 3
+    },
+    {
+      "id": "mechanics/1_44",
+      "accuracy": 0.0,
+      "num_answers": 1,
+      "num_equivalency": 1
+    },
+    {
+      "id": "mechanics/1_48",
+      "accuracy": 0.0,
+      "num_answers": 1,
+      "num_equivalency": 3
+    },
+    {
+      "id": "mechanics/1_5",
+      "accuracy": 0.0,
+      "num_answers": 1,
+      "num_equivalency": 1
+    },
+    {
+      "id": "mechanics/1_51",
+      "accuracy": 0.0,
+      "num_answers": 1,
+      "num_equivalency": 5
+    },
+    {
+      "id": "mechanics/1_52",
+      "accuracy": 0.0,
+      "num_answers": 1,
+      "num_equivalency": 1
+    },
+    {
+      "id": "mechanics/1_54",
+      "accuracy": 0.0,
+      "num_answers": 1,
+      "num_equivalency": 3
+    },
+    {
+      "id": "mechanics/1_57",
+      "accuracy": 0.0,
+      "num_answers": 1,
+      "num_equivalency": 2
+    }
+  ]
+}

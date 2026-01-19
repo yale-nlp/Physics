@@ -19,8 +19,8 @@ def timeout_handler(signum, frame):
 
 def _extract_core_eq(expr: str) -> str:
     """Extract the right-hand side of an equation or implication from a LaTeX expression."""
-    if "\implies" in expr:
-        expr = expr.split("\implies")[-1].strip()
+    if "\\implies" in expr:
+        expr = expr.split("\\implies")[-1].strip()
     if "=" in expr:
         expr = expr.split("=")[-1].strip()
     return expr
@@ -32,7 +32,7 @@ def _preprocess_latex(string: str) -> str:
     
     string = re.sub(r"_\{.*?\}", "", string)
     string = re.sub(r"_\\?\w", "", string)
-    string = string.replace("\left", "").replace("\right", "").replace("\cdot", "*")
+    string = string.replace("\\left", "").replace("\\right", "").replace("\\cdot", "*")
     return string
 
 def _standardize_expr(expr):
@@ -78,7 +78,10 @@ def is_equiv(expr1: str, expr2: str, verbose: bool = False) -> dict:
     }
     
     try:
-        if "\text" in expr1 or "\text" in expr2:
+        # NOTE:
+        # - Pythonの通常文字列で "\text" と書くと "\t" がタブとして解釈されるため、
+        #   意図した "\text" 検出にならない。
+        if "\\text" in expr1 or "\\text" in expr2:
             result_data["llm_result"] = call_llm_to_compare(expr1, expr2)
             result_data["final_result"] = result_data["llm_result"]
             return result_data

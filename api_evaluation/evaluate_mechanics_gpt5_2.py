@@ -1,7 +1,7 @@
 """
-力学データセット専用評価スクリプト（GPT-4o）
+力学データセット専用評価スクリプト（GPT-5.2）
 
-このスクリプトは力学（mechanics）データセットのみを対象にGPT-4oで評価を実行します。
+このスクリプトは力学（mechanics）データセットのみを対象にGPT-5.2で評価を実行します。
 """
 
 from __future__ import annotations
@@ -49,7 +49,7 @@ async def ask_llm_with_retries(
     *,
     max_retries: int = 3,
     delay: int = 2,
-    llm: str = "gpt-4o",
+    llm: str = "gpt-5.2",
     max_output_tokens: int | None = None,
 ) -> LLMCallResult:
     """
@@ -130,6 +130,8 @@ async def process_entry(
     system_prompt = (
         "You are an AI expert specializing in answering advanced physics questions. "
         "Think step by step and provide solution and final answer. "
+        "IMPORTANT: Do NOT use \\boxed{} format in intermediate steps or calculations. "
+        "Only use \\boxed{} format ONCE at the very end for the final answer. "
         "Provide the final answer at the end in Latex boxed format \\[\\boxed{}\\]. "
         "Example: \\[ \\boxed{ final_answer} \\]"
     )
@@ -279,25 +281,22 @@ async def save_checkpoint(output_jsonl, results):
     except Exception as e:
         print(f"チェックポイント保存エラー: {e}")
 
-async def process_jsonl(input_jsonl, output_dir, max_lines=1500, llm="gpt-4o", batch_size=16, skip_existing=False):
+async def process_jsonl(input_jsonl, output_dir, max_lines=1500, llm="gpt-5.2", batch_size=16):
     os.makedirs(output_dir, exist_ok=True)
     output_jsonl = os.path.join(output_dir, "response.jsonl")
     summary_csv = os.path.join(output_dir, "accuracy.csv")
     score_csv = os.path.join(output_dir, "score.csv")
     performance_plot = os.path.join(output_dir, "scatter_plot.png")
 
-    # 既存の処理済みIDを読み込む（skip_existingがFalseの場合は空セット）
-    if skip_existing:
-        processed_ids = await load_processed_ids(output_jsonl)
-    else:
-        processed_ids = set()
-        print("既存の処理済みIDをスキップせず、全ての問題を再実行します")
+    # 既存の処理済みIDを読み込む（テスト用に無効化）
+    # processed_ids = await load_processed_ids(output_jsonl)
+    processed_ids = set()  # スキップしないように空セットに設定
     
     # 既存の結果を読み込む（再計算用）
     existing_results = []
     existing_accuracies = []
     
-    if processed_ids and skip_existing:
+    if processed_ids:
         async with aiofiles.open(output_jsonl, "r") as file:
             async for line in file:
                 if line.strip():
@@ -312,7 +311,7 @@ async def process_jsonl(input_jsonl, output_dir, max_lines=1500, llm="gpt-4o", b
     sympy_errors_correct_llm_total = 0
     sympy_errors_total = 0
 
-    # エントリデータを読み込む（skip_existingがFalseの場合は全て読み込む）
+    # エントリデータを読み込む（処理済みを除外）
     entries = []
     async with aiofiles.open(input_jsonl, "r") as file:
         async for line in file:
@@ -320,8 +319,8 @@ async def process_jsonl(input_jsonl, output_dir, max_lines=1500, llm="gpt-4o", b
                 break
             data = json.loads(line.strip())
             entry_id = data.get("id")
-            # skip_existingがFalseの場合は全て追加、Trueの場合は処理済みを除外
-            if not skip_existing or entry_id not in processed_ids:
+            # 処理済みでないもののみ追加
+            if entry_id not in processed_ids:
                 entries.append(data)
 
     # 結果変数を初期化
@@ -331,7 +330,7 @@ async def process_jsonl(input_jsonl, output_dir, max_lines=1500, llm="gpt-4o", b
     if not entries:
         print("処理する新しい問題がありません。すべて処理済みです。")
     else:
-        print(f"処理対象: {len(entries)}問")
+        print(f"新規処理対象: {len(entries)}問")
         
         # タスクを作成
         tasks = [process_entry(entry, llm) for entry in entries]
@@ -341,9 +340,12 @@ async def process_jsonl(input_jsonl, output_dir, max_lines=1500, llm="gpt-4o", b
         total_tasks = len(tasks)
 
         # 全体の進捗バー（問題単位）
-        with tqdm_sync(total=total_tasks, desc=f"Processing {os.path.basename(input_jsonl)}", unit="問題", initial=len(processed_ids) if skip_existing else 0) as pbar:
+        with tqdm_sync(total=total_tasks, desc=f"Processing {os.path.basename(input_jsonl)}", unit="問題", initial=len(processed_ids)) as pbar:
             # バッチ単位の進捗バー
             for batch in tqdm(task_batches, desc="Batches", unit="バッチ", leave=False):
+                # レート制限回避のため、バッチ間に待機時間を追加
+                if len(task_batches) > 1:
+                    await asyncio.sleep(1)  # バッチ間に1秒待機
                 batch_results = await asyncio.gather(*batch)
                 
                 batch_new_results = []
@@ -368,7 +370,7 @@ async def process_jsonl(input_jsonl, output_dir, max_lines=1500, llm="gpt-4o", b
                     current_accuracy = sum(all_accuracies) / len(all_accuracies) if all_accuracies else 0.0
                     pbar.set_postfix({
                         "精度": f"{current_accuracy:.2%}", 
-                        "完了": f"{all_results_count}/{len(processed_ids) + total_tasks if skip_existing else total_tasks}",
+                        "完了": f"{all_results_count}/{len(processed_ids) + total_tasks}",
                         "新規": f"{len(new_results)}"
                     })
 
@@ -460,54 +462,44 @@ async def process_jsonl(input_jsonl, output_dir, max_lines=1500, llm="gpt-4o", b
     print(f"Results saved to {output_dir}. JSONL: {output_jsonl}, Summary: {summary_csv}, Scores: {score_csv}, Plot: {performance_plot}.")
 
 
-async def process_jsonl_list(jsonl_list, base_output_dir, max_lines=1500, llm="gpt-4o", batch_size=16, skip_existing=False):
+async def process_jsonl_list(jsonl_list, base_output_dir, max_lines=1500, llm="gpt-5.2", batch_size=32):
     for input_jsonl in jsonl_list:
         jsonl_name = os.path.splitext(os.path.basename(input_jsonl))[0]
         output_dir = os.path.join(base_output_dir, jsonl_name)
         print(f"Starting processing for {input_jsonl}...")
-        await process_jsonl(input_jsonl, output_dir, max_lines, llm, batch_size=batch_size, skip_existing=skip_existing)
+        await process_jsonl(input_jsonl, output_dir, max_lines, llm, batch_size)
 
-def main(llm, base_output_dir, input_jsonl_list, max_lines=1500, batch_size=16, skip_existing=False):
-    asyncio.run(process_jsonl_list(input_jsonl_list, base_output_dir, max_lines, llm, batch_size=batch_size, skip_existing=skip_existing))
+def main(llm, base_output_dir, input_jsonl_list, max_lines=1500, batch_size=32):
+    asyncio.run(process_jsonl_list(input_jsonl_list, base_output_dir, max_lines, llm, batch_size))
 
 if __name__ == "__main__":
     # ==========================================
-    # 力学データセット専用設定
+    # 力学データセット専用設定（GPT-5.2）
     # ==========================================
-    # スクリプトのディレクトリを基準にパスを解決
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(script_dir)
-    
-    llm = "gpt-4o"
-    base_output_dir = os.path.join(project_root, "outputs", "gpt-4o_mechanics_output_rerun")
+    llm = "gpt-5.2"
+    base_output_dir = "../outputs/gpt-5.2_mechanics_output"
     
     # 力学データセットのパス（画像付き版）
-    mechanics_dataset = os.path.join(project_root, "PHYSICS", "mechanics_dataset.jsonl")
+    mechanics_dataset = "../PHYSICS/mechanics_dataset.jsonl"
     
     # テキストのみ版を使用する場合は以下をコメントアウトして有効化
-    # mechanics_dataset = os.path.join(project_root, "PHYSICS", "PHYSICS-textonly", "mechanics_dataset_textonly.jsonl")
+    # mechanics_dataset = "../PHYSICS/PHYSICS-textonly/mechanics_dataset_textonly.jsonl"
     
     input_jsonl_list = [mechanics_dataset]
     
-    # 評価する問題数（テスト用は10、本番は221など）
-    max_lines = 221  # 全問題を評価（力学データセットは221問）
+    # 評価する問題数（検証用は20、本番は221など）
+    max_lines = 20  # 検証用：最初の20問（1バッチ分）を処理してエラーチェック
     
-    # バッチサイズ
-    batch_size = 64
-    
-    # 既存の処理済みIDをスキップするか（False=全て再実行）
-    skip_existing = False
+    # バッチサイズを20に設定
+    batch_size = 20
     
     print("=" * 60)
-    print("力学データセット評価開始（全問題再実行）")
+    print("力学データセット評価開始（GPT-5.2）")
     print(f"モデル: {llm}")
     print(f"データセット: {mechanics_dataset}")
     print(f"最大問題数: {max_lines}")
-    print(f"出力先: {base_output_dir}")
     print(f"バッチサイズ: {batch_size}")
-    print(f"既存スキップ: {skip_existing} (全て再実行)")
+    print(f"出力先: {base_output_dir}")
     print("=" * 60)
     
-    main(llm, base_output_dir, input_jsonl_list, max_lines, batch_size=batch_size, skip_existing=skip_existing)
-
-
+    main(llm, base_output_dir, input_jsonl_list, max_lines, batch_size)

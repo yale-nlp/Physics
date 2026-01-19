@@ -1,0 +1,14 @@
+{
+  "gpt52": {
+    "total_checks": 874,
+    "sympy_errors": 244,
+    "llm_correct": 0,
+    "error_details": []
+  },
+  "o3": {
+    "total_checks": 208,
+    "sympy_errors": 10,
+    "llm_correct": 2,
+    "error_details": []
+  }
+}
