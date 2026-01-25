@@ -66,7 +66,21 @@ async def ask_llm_with_retries(llm_messages, max_retries=3, delay=2, llm="gemini
         except Exception as e:
             error_msg = str(e)
             print(f"Attempt {attempt + 1} failed: {error_msg}")
-            if attempt < max_retries - 1:
+            
+            # 429エラー（クォータ超過）の場合は指数バックオフ
+            if "429" in error_msg or "quota" in error_msg.lower() or "RESOURCE_EXHAUSTED" in error_msg:
+                # RetryInfoから待機時間を抽出（あれば）
+                import re
+                retry_match = re.search(r'retry.*?(\d+(?:\.\d+)?)s', error_msg, re.IGNORECASE)
+                if retry_match:
+                    wait_time = float(retry_match.group(1)) + 2  # 余裕を持って+2秒
+                else:
+                    wait_time = delay * (2 ** attempt)  # 指数バックオフ: 2秒, 4秒, 8秒...
+                
+                print(f"  クォータエラー検出。{wait_time:.1f}秒待機してからリトライします...")
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(wait_time)
+            elif attempt < max_retries - 1:
                 await asyncio.sleep(delay)
     return None
 
@@ -97,7 +111,14 @@ async def process_entry(entry, llm="gemini-3-pro-preview", max_retries=3):
         messages = [
             {
                 "role": "system",
-                "content": "You are an AI expert specializing in answering advanced physics questions. Think step by step and provide solution and final answer. Provide the final answer at the end in Latex boxed format \\[\\boxed{}\\]. Example: \\[ \\boxed{ final_answer} \\]"
+                "content": (
+                    "You are an AI expert specializing in answering advanced physics questions. "
+                    "Think step by step and provide solution and final answer. "
+                    "IMPORTANT: Do NOT use \\boxed{} format in intermediate steps or calculations. "
+                    "Only use \\boxed{} format ONCE at the very end for the final answer. "
+                    "Provide the final answer at the end in Latex boxed format \\[\\boxed{}\\]. "
+                    "Example: \\[ \\boxed{ final_answer} \\]"
+                )
             },
             {
                 "role": "user",
@@ -165,7 +186,7 @@ async def process_entry(entry, llm="gemini-3-pro-preview", max_retries=3):
         "accuracy": accuracy
     }, sympy_errors_correct_llm, sympy_errors
 
-async def process_jsonl(input_jsonl, output_dir, max_lines=5, llm="gemini-3-pro-preview", batch_size=25):
+async def process_jsonl(input_jsonl, output_dir, max_lines=5, llm="gemini-3-pro-preview", batch_size=10):
     """
     JSONLファイルを処理して評価結果を保存
     """

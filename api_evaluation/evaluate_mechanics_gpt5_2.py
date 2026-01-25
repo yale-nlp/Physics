@@ -44,6 +44,53 @@ class LLMCallResult:
     usage: dict[str, Any] | None
 
 
+def _convert_to_responses_input(llm_messages: list[dict[str, Any]]) -> str | list[dict[str, Any]]:
+    """
+    Chat Completions形式のメッセージをResponses APIのinput形式に変換する。
+    
+    - 画像がない場合は文字列形式を返す（シンプルで高速）
+    - 画像がある場合はmessage形式に変換する
+    """
+    has_images = any(msg.get("type") == "image_url" for msg in llm_messages)
+    
+    if not has_images:
+        # 画像がない場合は文字列形式（シンプル）
+        text_parts = []
+        for msg in llm_messages:
+            if msg.get("type") == "text":
+                text_parts.append(msg.get("text", ""))
+        return "\n".join(text_parts)
+    else:
+        # 画像がある場合はmessage形式に変換
+        content_items = []
+        for msg in llm_messages:
+            if msg.get("type") == "text":
+                content_items.append({
+                    "type": "input_text",
+                    "text": msg.get("text", "")
+                })
+            elif msg.get("type") == "image_url":
+                image_url = msg.get("image_url", {})
+                if isinstance(image_url, dict):
+                    url = image_url.get("url", "")
+                    if url.startswith("data:image"):
+                        # base64形式の画像データ
+                        content_items.append({
+                            "type": "input_image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": url.split(";")[0].split(":")[1],
+                                "data": url.split(",")[1] if "," in url else ""
+                            }
+                        })
+        
+        return [{
+            "type": "message",
+            "role": "user",
+            "content": content_items
+        }]
+
+
 async def ask_llm_with_retries(
     llm_messages: list[dict[str, Any]],
     *,
@@ -53,27 +100,55 @@ async def ask_llm_with_retries(
     max_output_tokens: int | None = None,
 ) -> LLMCallResult:
     """
-    OpenAI互換 Chat Completions を呼び出す。
+    OpenAI Responses APIを使用してGPT-5.2を呼び出す。
 
     - **注意**: 画像入力（data:image のbase64直埋め）はプロンプトが巨大になりやすい。
       そのため「抽出失敗で同じ入力を再送」しないよう、上位層で再送回数を抑制する。
+    - responses APIでは`input`パラメータにメッセージを渡す
     """
+    # メッセージをresponses API形式に変換
+    input_data = _convert_to_responses_input(llm_messages)
+    
     for attempt in range(max_retries):
         try:
+            # responses.create()エンドポイントを使用（reasoningパラメータ対応）
             create_kwargs: dict[str, Any] = {
                 "model": llm,
-                "messages": llm_messages,
-                "temperature": 0.0,
+                "reasoning": {"effort": "high"},  # 推論の深さをhighに設定
+                "input": input_data,  # responses APIではinputパラメータを使用
             }
             if max_output_tokens is not None:
-                create_kwargs["max_tokens"] = max_output_tokens
-            response = await client.chat.completions.create(**create_kwargs)
-            usage = response.usage.model_dump() if response.usage is not None else None
-            content = response.choices[0].message.content
+                create_kwargs["max_output_tokens"] = max_output_tokens
+            
+            response = await client.responses.create(**create_kwargs)
+            
+            # responses APIのレスポンス形式に合わせて処理
+            content = response.output_text if hasattr(response, 'output_text') else None
+            
+            # usage情報の取得
+            usage = None
+            if hasattr(response, 'usage') and response.usage:
+                usage = {
+                    "prompt_tokens": getattr(response.usage, 'prompt_tokens', 0),
+                    "completion_tokens": getattr(response.usage, 'completion_tokens', 0),
+                    "total_tokens": getattr(response.usage, 'total_tokens', 0),
+                }
+            
             return LLMCallResult(content.strip() if content else None, usage)
         except Exception as e:
+            error_str = str(e)
             print(f"Attempt {attempt + 1} failed: {e}")
-            if attempt < max_retries - 1:
+            
+            # 429エラー（クォータ超過）の場合は、より長い待機時間を設定
+            if "429" in error_str or "insufficient_quota" in error_str.lower():
+                if attempt < max_retries - 1:
+                    # 429エラーの場合は指数バックオフ: 10秒 → 20秒 → 40秒
+                    wait_time = 10 * (2 ** attempt)
+                    print(f"Quota error detected. Waiting {wait_time} seconds before retry...")
+                    await asyncio.sleep(wait_time)
+                else:
+                    print("Max retries reached. API quota exceeded. Please check your billing.")
+            elif attempt < max_retries - 1:
                 await asyncio.sleep(delay)
     return LLMCallResult(None, None)
 
@@ -142,12 +217,17 @@ async def process_entry(
     flattened_answers: list[str] = []
 
     for _ in range(max(1, solve_attempts)):
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": llm_messages},
-        ]
+        # responses API用にinput形式に変換
+        # システムプロンプトとユーザーメッセージを結合
+        input_messages = []
+        # システムプロンプトを先頭に追加（responses APIではinputに含める）
+        if system_prompt:
+            input_messages.append({"type": "text", "text": system_prompt})
+        # ユーザーメッセージ（テキストと画像）を追加
+        input_messages.extend(llm_messages)
+        
         solve_result = await ask_llm_with_retries(
-            messages,
+            input_messages,
             max_retries=api_retries,
             llm=llm,
         )
@@ -171,25 +251,22 @@ async def process_entry(
         # 2) boxed抽出に失敗した場合、同じ巨大入力を再送せず「回答の整形」だけを依頼する
         #    これにより data:image(base64) を再送しない＝無駄トークンを大きく削減できる。
         for _ in range(format_attempts):
+            # responses API用にinput形式に変換（画像なしなので文字列形式）
+            format_system_prompt = (
+                "You are a careful formatter. "
+                "Extract ONLY the final answer from the given text and output it in LaTeX boxed format "
+                "\\[\\boxed{...}\\]. Output ONLY the boxed answer, nothing else."
+            )
+            format_user_content = (
+                "Text:\n"
+                "-----\n"
+                f"{answers}\n"
+                "-----\n"
+                "Return ONLY the boxed final answer."
+            )
             format_messages = [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a careful formatter. "
-                        "Extract ONLY the final answer from the given text and output it in LaTeX boxed format "
-                        "\\[\\boxed{...}\\]. Output ONLY the boxed answer, nothing else."
-                    ),
-                },
-                {
-                    "role": "user",
-                    "content": (
-                        "Text:\n"
-                        "-----\n"
-                        f"{answers}\n"
-                        "-----\n"
-                        "Return ONLY the boxed final answer."
-                    ),
-                },
+                {"type": "text", "text": format_system_prompt},
+                {"type": "text", "text": format_user_content},
             ]
             format_result = await ask_llm_with_retries(
                 format_messages,
@@ -488,10 +565,10 @@ if __name__ == "__main__":
     input_jsonl_list = [mechanics_dataset]
     
     # 評価する問題数（検証用は20、本番は221など）
-    max_lines = 20  # 検証用：最初の20問（1バッチ分）を処理してエラーチェック
+    max_lines = 221  # 全問題を評価（力学データセットは221問）
     
-    # バッチサイズを20に設定
-    batch_size = 20
+    # バッチサイズを24に設定
+    batch_size = 24
     
     print("=" * 60)
     print("力学データセット評価開始（GPT-5.2）")
