@@ -503,8 +503,13 @@ async def process_jsonl(input_jsonl, output_dir, max_lines=1500, llm="gpt-5.2", 
     except Exception:
         pass
 
-    # 既存の処理済みIDを読み込む（成功した問題のみをスキップ、失敗した問題は再実行）
-    processed_ids = await load_processed_ids(output_jsonl, skip_only_successful=True)
+    # 既存の処理済みIDを読み込む（全てゼロから実行するため、既存結果をスキップしない）
+    processed_ids = await load_processed_ids(output_jsonl, skip_only_successful=False)
+    # 全てゼロから実行するため、既存の結果ファイルを削除
+    if os.path.exists(output_jsonl):
+        os.remove(output_jsonl)
+        print(f"既存の結果ファイルを削除しました: {output_jsonl}")
+    processed_ids = set()  # 全てゼロから実行
     
     # 既存の結果を読み込む（成功した問題のみ、再計算用）
     existing_results = []
@@ -691,24 +696,24 @@ def main(llm, base_output_dir, input_jsonl_list, max_lines=1500, batch_size=32):
 
 if __name__ == "__main__":
     # ==========================================
-    # 力学データセット専用設定（GPT-5.2）
+    # 力学データセット専用設定（GPT-5.2、reasoningパラメータあり、textonly版）
     # ==========================================
     llm = "gpt-5.2"
-    base_output_dir = "../outputs/gpt-5.2_mechanics_output"
+    base_output_dir = "../outputs/gpt-5.2_mechanics_output_reasoning_textonly"
     
-    # 力学データセットのパス（画像付き版）
-    mechanics_dataset = "../PHYSICS/mechanics_dataset.jsonl"
+    # テキストのみ版を使用
+    mechanics_dataset = "../PHYSICS/PHYSICS-textonly/mechanics_dataset_textonly.jsonl"
     
-    # テキストのみ版を使用する場合は以下をコメントアウトして有効化
-    # mechanics_dataset = "../PHYSICS/PHYSICS-textonly/mechanics_dataset_textonly.jsonl"
+    # 画像付き版を使用する場合は以下をコメントアウトして有効化
+    # mechanics_dataset = "../PHYSICS/mechanics_dataset.jsonl"
     
     input_jsonl_list = [mechanics_dataset]
     
-    # 評価する問題数（検証用は20、本番は221など）
-    max_lines = 221  # 全問題を評価（力学データセットは221問）
+    # 評価する問題数（textonly版は133問）
+    max_lines = 133  # 全問題を評価（textonly版は133問）
     
-    # バッチサイズを24に設定
-    batch_size = 24
+    # バッチサイズを64に設定
+    batch_size = 64
     
     print("=" * 60)
     print("力学データセット評価開始（GPT-5.2）")
