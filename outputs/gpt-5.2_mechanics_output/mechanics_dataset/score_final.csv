@@ -1,19 +1,4 @@
 Entry ID,Accuracy,Prompt Tokens,Completion Tokens,Total Tokens
-mechanics/1_9,1.0,0,0,1390
-mechanics/2_25,1.0,0,0,4199
-mechanics/3_3,1.0,0,0,7211
-mechanics/1_34,1.0,0,0,5007
-mechanics/1_33,1.0,0,0,2605
-mechanics/1_58,1.0,0,0,1191
-mechanics/1_67,1.0,0,0,1446
-mechanics/1_60,0.0,0,0,1109
-mechanics/1_69,0.0,0,0,2504
-mechanics/1_56,1.0,0,0,2761
-mechanics/2_49,1.0,0,0,1830
-mechanics/1_51,1.0,0,0,3274
-mechanics/2_15,1.0,0,0,3997
-mechanics/1_1,0.0,0,0,5890
-mechanics/1_32,1.0,0,0,5636
 mechanics/1_9,1.0,0,0,1104
 mechanics/2_25,1.0,0,0,2790
 mechanics/3_3,1.0,0,0,8441
@@ -102,48 +87,6 @@ mechanics/3_6,1.0,0,0,6448
 mechanics/1_38,1.0,0,0,1926
 mechanics/3_1,0.0,0,0,1061
 mechanics/2_27,1.0,0,0,14998
-mechanics/2_18,0.0,0,0,8489
-mechanics/3_42,1.0,0,0,1806
-mechanics/3_45,0.0,0,0,6137
-mechanics/3_11,1.0,0,0,4071
-mechanics/3_16,0.0,0,0,8018
-mechanics/3_20,1.0,0,0,2573
-mechanics/3_27,0.0,0,0,2350
-mechanics/3_19,0.0,0,0,1734
-mechanics/3_28,0.0,0,0,9059
-mechanics/3_10,0.0,0,0,3032
-mechanics/3_32,1.0,0,0,4118
-mechanics/2_4,0.0,0,0,6349
-mechanics/2_5,0.0,0,0,6348
-mechanics/3_34,0.0,0,0,1162
-mechanics/3_33,1.0,0,0,4652
-mechanics/1_22,0.0,0,0,2300
-mechanics/1_25,0.0,0,0,5682
-mechanics/1_13,1.0,0,0,2017
-mechanics/1_14,0.0,0,0,469
-mechanics/2_33,1.0,0,0,3655
-mechanics/1_85,0.0,0,0,4339
-mechanics/1_71,1.0,0,0,2912
-mechanics/1_76,1.0,0,0,2319
-mechanics/1_49,0.0,0,0,952
-mechanics/2_35,0.0,0,0,3713
-mechanics/1_24,0.0,0,0,1517
-mechanics/1_23,0.0,0,0,4292
-mechanics/1_77,1.0,0,0,3825
-mechanics/1_100,0.0,0,0,13690
-mechanics/1_48,0.0,0,0,3425
-mechanics/1_70,0.0,0,0,3041
-mechanics/1_46,0.0,0,0,5112
-mechanics/1_79,0.0,0,0,2086
-Classical Mechanics/2-11,0.0,0,0,2960
-Classical Mechanics/2-8,0.0,0,0,3126
-Classical Mechanics/2-21,0.0,0,0,7678
-Classical Mechanics/2-9,0.0,0,0,2503
-Classical Mechanics/2-12,0.0,0,0,1179
-Classical Mechanics/2-15,1.0,0,0,2825
-Classical Mechanics/2-14,0.0,0,0,2536
-Classical Mechanics/2-3,1.0,0,0,609
-Classical Mechanics/2-13,1.0,0,0,5415
 mechanics/3_4,0,,,
 mechanics/2_22,0,,,
 mechanics/2_13,0,,,
@@ -200,38 +143,80 @@ mechanics/1_36,0,,,
 mechanics/1_31,0,,,
 mechanics/2_29,0,,,
 mechanics/2_20,0,,,
+mechanics/2_18,0.0,0,0,8489
+mechanics/3_42,1.0,0,0,1806
+mechanics/3_45,0.0,0,0,6137
+mechanics/3_11,1.0,0,0,4071
+mechanics/3_16,0.0,0,0,8018
 mechanics/3_29,0,,,
+mechanics/3_20,1.0,0,0,2573
+mechanics/3_27,0.0,0,0,2350
 mechanics/3_18,0,,,
 mechanics/3_44,0,,,
 mechanics/3_43,0,,,
 mechanics/3_26,0,,,
+mechanics/3_19,0.0,0,0,1734
 mechanics/3_21,0,,,
 mechanics/3_17,0,,,
+mechanics/3_28,0.0,0,0,9059
+mechanics/3_10,0.0,0,0,3032
+mechanics/3_32,1.0,0,0,4118
 mechanics/3_35,0,,,
 mechanics/2_3,0,,,
+mechanics/2_4,0.0,0,0,6349
 mechanics/3_50,0,,,
+mechanics/2_5,0.0,0,0,6348
 mechanics/2_2,0,,,
+mechanics/3_34,0.0,0,0,1162
+mechanics/3_33,1.0,0,0,4652
+mechanics/1_22,0.0,0,0,2300
+mechanics/1_25,0.0,0,0,5682
 mechanics/2_34,0,,,
+mechanics/1_13,1.0,0,0,2017
+mechanics/1_14,0.0,0,0,469
+mechanics/2_33,1.0,0,0,3655
 mechanics/1_40,0,,,
 mechanics/1_47,0,,,
 mechanics/1_78,0,,,
+mechanics/1_85,0.0,0,0,4339
+mechanics/1_71,1.0,0,0,2912
+mechanics/1_76,1.0,0,0,2319
 mechanics/1_82,0,,,
+mechanics/1_49,0.0,0,0,952
 mechanics/2_32,0,,,
 mechanics/1_15,0,,,
 mechanics/1_12,0,,,
+mechanics/2_35,0.0,0,0,3713
+mechanics/1_24,0.0,0,0,1517
+mechanics/1_23,0.0,0,0,4292
 mechanics/2_50,0,,,
 mechanics/1_83,0,,,
+mechanics/1_77,1.0,0,0,3825
+mechanics/1_100,0.0,0,0,13690
+mechanics/1_48,0.0,0,0,3425
+mechanics/1_70,0.0,0,0,3041
 mechanics/1_84,0,,,
+mechanics/1_46,0.0,0,0,5112
+mechanics/1_79,0.0,0,0,2086
 mechanics/1_41,0,,,
 Classical Mechanics/2-1,0,,,
 Classical Mechanics/2-16,0,,,
+Classical Mechanics/2-11,0.0,0,0,2960
 Classical Mechanics/2-6,0,,,
 Classical Mechanics/2-18,0,,,
 Classical Mechanics/2-20,0,,,
+Classical Mechanics/2-8,0.0,0,0,3126
+Classical Mechanics/2-21,0.0,0,0,7678
+Classical Mechanics/2-9,0.0,0,0,2503
 Classical Mechanics/2-19,0,,,
 Classical Mechanics/2-7,0,,,
 Classical Mechanics/2-10,0,,,
 Classical Mechanics/2-17,0,,,
+Classical Mechanics/2-12,0.0,0,0,1179
 Classical Mechanics/2-5,0,,,
 Classical Mechanics/2-2,0,,,
+Classical Mechanics/2-15,1.0,0,0,2825
+Classical Mechanics/2-14,0.0,0,0,2536
+Classical Mechanics/2-3,1.0,0,0,609
 Classical Mechanics/2-4,0,,,
+Classical Mechanics/2-13,1.0,0,0,5415

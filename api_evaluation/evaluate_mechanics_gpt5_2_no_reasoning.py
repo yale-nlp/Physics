@@ -1,7 +1,8 @@
 """
-力学データセット専用評価スクリプト（GPT-5.2）
+力学データセット専用評価スクリプト（GPT-5.2、reasoningパラメータなし版）
 
 このスクリプトは力学（mechanics）データセットのみを対象にGPT-5.2で評価を実行します。
+reasoningパラメータなし版で、比較用に使用します。
 """
 
 from __future__ import annotations
@@ -94,14 +95,14 @@ def _convert_to_responses_input(llm_messages: list[dict[str, Any]]) -> str | lis
 async def ask_llm_with_retries(
     llm_messages: list[dict[str, Any]],
     *,
-    max_retries: int = 2,
+    max_retries: int = 3,
     delay: int = 2,
     llm: str = "gpt-5.2",
     max_output_tokens: int | None = None,
 ) -> LLMCallResult:
     """
-    OpenAI Responses APIを使用してGPT-5.2を呼び出す。
-
+    OpenAI Responses APIを使用してGPT-5.2を呼び出す（reasoningパラメータなし版）。
+    
     - **注意**: 画像入力（data:image のbase64直埋め）はプロンプトが巨大になりやすい。
       そのため「抽出失敗で同じ入力を再送」しないよう、上位層で再送回数を抑制する。
     - responses APIでは`input`パラメータにメッセージを渡す
@@ -111,10 +112,10 @@ async def ask_llm_with_retries(
     
     for attempt in range(max_retries):
         try:
-            # responses.create()エンドポイントを使用（reasoningパラメータ対応）
+            # responses.create()エンドポイントを使用（reasoningパラメータなし）
             create_kwargs: dict[str, Any] = {
                 "model": llm,
-                "reasoning": {"effort": "high"},  # 推論の深さをhighに設定
+                # reasoningパラメータを設定しない（比較用）
                 "input": input_data,  # responses APIではinputパラメータを使用
             }
             if max_output_tokens is not None:
@@ -123,91 +124,7 @@ async def ask_llm_with_retries(
             response = await client.responses.create(**create_kwargs)
             
             # responses APIのレスポンス形式に合わせて処理
-            # Responses APIのレスポンス構造を確認して適切にアクセス
-            content = None
-            if hasattr(response, 'output_text'):
-                # output_text属性がある場合
-                content = response.output_text
-            elif hasattr(response, 'output') and response.output:
-                # output配列から取得（ネストされた構造）
-                try:
-                    if isinstance(response.output, list) and len(response.output) > 0:
-                        output_item = response.output[0]
-                        if hasattr(output_item, 'content') and output_item.content:
-                            if isinstance(output_item.content, list) and len(output_item.content) > 0:
-                                content_item = output_item.content[0]
-                                if hasattr(content_item, 'text'):
-                                    content = content_item.text
-                                elif isinstance(content_item, str):
-                                    content = content_item
-                        elif hasattr(output_item, 'text'):
-                            content = output_item.text
-                        elif isinstance(output_item, str):
-                            content = output_item
-                except Exception as e:
-                    print(f"Warning: Failed to extract content from response.output: {e}")
-            
-            # デバッグ用: レスポンス構造を確認（ファイルに記録）
-            if content is None:
-                debug_log_path = os.path.join(os.path.dirname(__file__), "response_debug.log")
-                try:
-                    import datetime
-                    import json
-                    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    with open(debug_log_path, "a", encoding="utf-8") as f:
-                        f.write("=" * 80 + "\n")
-                        f.write(f"[{timestamp}] Response Debug - Content extraction failed\n")
-                        f.write(f"Response type: {type(response)}\n")
-                        f.write(f"Response module: {type(response).__module__}\n")
-                        f.write(f"Response class: {type(response).__name__}\n")
-                        f.write(f"Response attributes: {[attr for attr in dir(response) if not attr.startswith('_')]}\n")
-                        
-                        # レスポンスオブジェクトを辞書形式で取得を試行
-                        if hasattr(response, 'model_dump'):
-                            try:
-                                f.write(f"Response.model_dump(): {json.dumps(response.model_dump(), indent=2, ensure_ascii=False)}\n")
-                            except Exception as e:
-                                f.write(f"Failed to dump model: {e}\n")
-                        elif hasattr(response, 'dict'):
-                            try:
-                                f.write(f"Response.dict(): {json.dumps(response.dict(), indent=2, ensure_ascii=False)}\n")
-                            except Exception as e:
-                                f.write(f"Failed to get dict: {e}\n")
-                        
-                        # output属性の詳細確認
-                        if hasattr(response, 'output'):
-                            f.write(f"Response.output type: {type(response.output)}\n")
-                            if isinstance(response.output, list):
-                                f.write(f"Response.output length: {len(response.output)}\n")
-                                if len(response.output) > 0:
-                                    f.write(f"Response.output[0] type: {type(response.output[0])}\n")
-                                    f.write(f"Response.output[0] attributes: {[attr for attr in dir(response.output[0]) if not attr.startswith('_')]}\n")
-                                    if hasattr(response.output[0], 'model_dump'):
-                                        try:
-                                            f.write(f"Response.output[0].model_dump(): {json.dumps(response.output[0].model_dump(), indent=2, ensure_ascii=False)}\n")
-                                        except Exception as e:
-                                            f.write(f"Failed to dump output[0]: {e}\n")
-                            else:
-                                f.write(f"Response.output value: {response.output}\n")
-                        
-                        # usage属性の確認
-                        if hasattr(response, 'usage'):
-                            f.write(f"Response.usage type: {type(response.usage)}\n")
-                            if hasattr(response.usage, 'model_dump'):
-                                try:
-                                    f.write(f"Response.usage.model_dump(): {json.dumps(response.usage.model_dump(), indent=2, ensure_ascii=False)}\n")
-                                except Exception as e:
-                                    f.write(f"Failed to dump usage: {e}\n")
-                            else:
-                                f.write(f"Response.usage value: {response.usage}\n")
-                        
-                        f.write("=" * 80 + "\n\n")
-                except Exception as debug_error:
-                    print(f"Warning: Failed to write debug log: {debug_error}")
-                
-                # 標準出力にも簡易情報を出力
-                print(f"Warning: Could not extract content. Response type: {type(response)}")
-                print(f"Debug log written to: {debug_log_path}")
+            content = response.output_text if hasattr(response, 'output_text') else None
             
             # usage情報の取得
             usage = None
@@ -217,32 +134,11 @@ async def ask_llm_with_retries(
                     "completion_tokens": getattr(response.usage, 'completion_tokens', 0),
                     "total_tokens": getattr(response.usage, 'total_tokens', 0),
                 }
-            # usageが直接dictの場合も対応
-            elif hasattr(response, 'usage') and isinstance(response.usage, dict):
-                usage = {
-                    "prompt_tokens": response.usage.get('prompt_tokens', 0),
-                    "completion_tokens": response.usage.get('completion_tokens', 0),
-                    "total_tokens": response.usage.get('total_tokens', 0),
-                }
             
             return LLMCallResult(content.strip() if content else None, usage)
         except Exception as e:
             error_str = str(e)
-            error_type = type(e).__name__
-            print(f"Attempt {attempt + 1} failed: {error_type}: {e}")
-            
-            # エラーログをファイルに記録（デバッグ用）
-            try:
-                import datetime
-                error_log_path = os.path.join(os.path.dirname(__file__), "api_errors.log")
-                with open(error_log_path, "a", encoding="utf-8") as f:
-                    import traceback
-                    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    f.write(f"[{timestamp}] Attempt {attempt + 1}/{max_retries} - {error_type}: {error_str}\n")
-                    f.write(f"Traceback:\n{traceback.format_exc()}\n")
-                    f.write("-" * 80 + "\n\n")
-            except Exception:
-                pass  # エラーログの記録に失敗しても処理を続行
+            print(f"Attempt {attempt + 1} failed: {e}")
             
             # 429エラー（クォータ超過）の場合は、より長い待機時間を設定
             if "429" in error_str or "insufficient_quota" in error_str.lower():
@@ -283,7 +179,7 @@ async def process_entry(
     llm: str,
     *,
     solve_attempts: int = 1,
-    api_retries: int = 2,
+    api_retries: int = 3,
     format_attempts: int = 2,
     format_max_output_tokens: int = 256,
 ) -> tuple[dict[str, Any], int, int]:
@@ -437,15 +333,8 @@ async def process_entry(
         "token_usage": _merge_usage(solve_usages) if solve_usages else None,
     }, sympy_errors_correct_llm, sympy_errors
 
-async def load_processed_ids(output_jsonl, skip_only_successful=True):
-    """
-    既存のresponse.jsonlから処理済みの問題IDを読み込む
-    
-    Args:
-        output_jsonl: 出力JSONLファイルのパス
-        skip_only_successful: Trueの場合、成功した問題（solution≠null）のみをスキップ。
-                             Falseの場合、すべての処理済み問題をスキップ。
-    """
+async def load_processed_ids(output_jsonl):
+    """既存のresponse.jsonlから処理済みの問題IDを読み込む"""
     processed_ids = set()
     if os.path.exists(output_jsonl):
         try:
@@ -454,21 +343,9 @@ async def load_processed_ids(output_jsonl, skip_only_successful=True):
                     if line.strip():
                         data = json.loads(line.strip())
                         entry_id = data.get("id")
-                        solution = data.get("solution")
-                        
                         if entry_id:
-                            if skip_only_successful:
-                                # 成功した問題（solution≠null）のみをスキップ
-                                if solution is not None:
-                                    processed_ids.add(entry_id)
-                            else:
-                                # すべての処理済み問題をスキップ
-                                processed_ids.add(entry_id)
-            
-            if skip_only_successful:
-                print(f"既存の結果を検出: {len(processed_ids)}件の成功済み問題をスキップします（失敗した問題は再実行します）")
-            else:
-                print(f"既存の結果を検出: {len(processed_ids)}件の処理済み問題をスキップします")
+                            processed_ids.add(entry_id)
+            print(f"既存の結果を検出: {len(processed_ids)}件の処理済み問題をスキップします")
         except Exception as e:
             print(f"既存の結果ファイルの読み込みエラー: {e}")
     return processed_ids
@@ -488,39 +365,23 @@ async def process_jsonl(input_jsonl, output_dir, max_lines=1500, llm="gpt-5.2", 
     summary_csv = os.path.join(output_dir, "accuracy.csv")
     score_csv = os.path.join(output_dir, "score.csv")
     performance_plot = os.path.join(output_dir, "scatter_plot.png")
-    
-    # エラーログファイルに実行開始マーカーを記録
-    try:
-        import datetime
-        error_log_path = os.path.join(os.path.dirname(__file__), "api_errors.log")
-        with open(error_log_path, "a", encoding="utf-8") as f:
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            f.write("=" * 80 + "\n")
-            f.write(f"評価開始: {timestamp}\n")
-            f.write(f"データセット: {os.path.basename(input_jsonl)}\n")
-            f.write(f"出力先: {output_dir}\n")
-            f.write("=" * 80 + "\n\n")
-    except Exception:
-        pass
 
-    # 既存の処理済みIDを読み込む（成功した問題のみをスキップ、失敗した問題は再実行）
-    processed_ids = await load_processed_ids(output_jsonl, skip_only_successful=True)
+    # 既存の処理済みIDを読み込む（テスト用に無効化）
+    # processed_ids = await load_processed_ids(output_jsonl)
+    processed_ids = set()  # スキップしないように空セットに設定
     
-    # 既存の結果を読み込む（成功した問題のみ、再計算用）
+    # 既存の結果を読み込む（再計算用）
     existing_results = []
     existing_accuracies = []
     
-    if os.path.exists(output_jsonl):
+    if processed_ids:
         async with aiofiles.open(output_jsonl, "r") as file:
             async for line in file:
                 if line.strip():
                     data = json.loads(line.strip())
-                    entry_id = data.get("id")
-                    solution = data.get("solution")
-                    # 成功した問題（solution≠null）のみを既存結果として読み込む
-                    if entry_id in processed_ids and solution is not None:
-                        existing_results.append(data)
-                        existing_accuracies.append(data.get("accuracy", 0))
+                    existing_results.append(data)
+                    existing_accuracies.append(data.get("accuracy", 0))
+                    # 統計情報は再計算が必要なため、ここでは読み込まない
 
     # 新しい結果を保存するリスト
     new_results = []
@@ -670,7 +531,7 @@ async def process_jsonl(input_jsonl, output_dir, max_lines=1500, llm="gpt-5.2", 
     if len(accuracies) > 1:
         plt.axhline(overall_accuracy + statistics.stdev(accuracies), color="red", linestyle="--", label=f"+1 Std Dev: {overall_accuracy + statistics.stdev(accuracies):.2f}")
         plt.axhline(overall_accuracy - statistics.stdev(accuracies), color="red", linestyle="--", label=f"-1 Std Dev: {overall_accuracy - statistics.stdev(accuracies):.2f}")
-    plt.title(f"{llm} Performance Plot for {os.path.basename(input_jsonl)}")
+    plt.title(f"{llm} Performance Plot for {os.path.basename(input_jsonl)} (No Reasoning)")
     plt.xlabel("Entry Index")
     plt.ylabel("Correctness")
     plt.legend()
@@ -691,27 +552,27 @@ def main(llm, base_output_dir, input_jsonl_list, max_lines=1500, batch_size=32):
 
 if __name__ == "__main__":
     # ==========================================
-    # 力学データセット専用設定（GPT-5.2）
+    # 力学データセット専用設定（GPT-5.2、reasoningパラメータなし版）
     # ==========================================
     llm = "gpt-5.2"
-    base_output_dir = "../outputs/gpt-5.2_mechanics_output"
+    base_output_dir = "../outputs/gpt-5.2_mechanics_output_no_reasoning_textonly"
     
-    # 力学データセットのパス（画像付き版）
-    mechanics_dataset = "../PHYSICS/mechanics_dataset.jsonl"
+    # テキストのみ版を使用
+    mechanics_dataset = "../PHYSICS/PHYSICS-textonly/mechanics_dataset_textonly.jsonl"
     
-    # テキストのみ版を使用する場合は以下をコメントアウトして有効化
-    # mechanics_dataset = "../PHYSICS/PHYSICS-textonly/mechanics_dataset_textonly.jsonl"
+    # 画像付き版を使用する場合は以下をコメントアウトして有効化
+    # mechanics_dataset = "../PHYSICS/mechanics_dataset.jsonl"
     
     input_jsonl_list = [mechanics_dataset]
     
-    # 評価する問題数（検証用は20、本番は221など）
-    max_lines = 221  # 全問題を評価（力学データセットは221問）
+    # 評価する問題数（textonly版は133問）
+    max_lines = 133  # 全問題を評価（textonly版は133問）
     
     # バッチサイズを24に設定
     batch_size = 24
     
     print("=" * 60)
-    print("力学データセット評価開始（GPT-5.2）")
+    print("力学データセット評価開始（GPT-5.2、reasoningパラメータなし）")
     print(f"モデル: {llm}")
     print(f"データセット: {mechanics_dataset}")
     print(f"最大問題数: {max_lines}")

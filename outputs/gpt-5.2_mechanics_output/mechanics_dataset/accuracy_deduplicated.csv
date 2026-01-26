@@ -1,2 +1,2 @@
 Overall Accuracy,Variance,Sympy Error Correct Ratio,Total Prompt Tokens,Total Completion Tokens,Total Tokens,Avg Tokens / Problem
-0.3305084745762712,0.22221420843851425,0.0,0,0,543106,2301.2966101694915
+0.6022727272727273,0.24229362591431558,0.0,0,0,328981,3738.4204545454545
