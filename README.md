@@ -6,13 +6,13 @@
 
 Why use it for new work:
 
-- **Every answer can actually be scored.** 188 of the 1,297 problems ask for a proof, an explanation or a drawing, or cannot be answered without a figure that is missing. Scoring a model on them measures the extraction pipeline, not physics. They are removed, and requests of that kind are deleted from problems whose remaining parts still ask for results.
-- **The reference answers were audited.** Each problem was solved independently without the reference, the two were compared, and disagreements were resolved by a fresh reviewer. Nine reference answers were repaired, each confirmed by a second independent check: wrong units, a dropped factor, an order-of-magnitude error, an undefined quantum number, and one answer that bundled seven results into one string. One duplicate problem and one problem whose Hamiltonian contradicts its own solution were removed.
+- **Every answer can actually be scored.** 188 of the 1,297 problems ask for a proof, an explanation or a drawing, or cannot be answered without a figure that is missing. Those are removed, along with requests of that kind inside problems whose remaining parts still ask for results.
+- **The reference answers were audited.** Each problem was solved independently without the reference, the two were compared, and disagreements were resolved by a fresh reviewer, with every repair confirmed by a second independent check.
 - **Sub-answers are separated.** Each of the 2,803 answers carries the subquestion label it belongs to and its type (numeric, symbolic or text), so a model that gets two parts of three right is scored that way instead of all-or-nothing on a concatenated string.
-- **Grading no longer depends on string extraction.** The recommended protocol asks for labelled final answers and a confidence, then has an LLM judge return one verdict per reference answer under written rules. The judge prompt, a synthetic self-test with known verdicts, and a cross-check against a second judge ship with the harness.
+- **Grading follows [Humanity's Last Exam](https://arxiv.org/abs/2501.14249).** Its response format and LLM-judge protocol are used as they are, extended only to return one verdict per reference answer rather than one per problem, so string extraction no longer decides the score.
 - **Every change is documented.** `research_reference.json` covers all 1,297 original IDs and gives, for each, the original text, the per-subquestion decisions and their reasons, the mapping to the public answers, and any reference correction.
 
-Results on the two versions are not comparable: the problem set, the answer granularity and the grading are all different.
+Baseline responses and judge verdicts for five models are published at [yale-nlp/physics-verified-model-outputs](https://huggingface.co/datasets/yale-nlp/physics-verified-model-outputs).
 
 ## Overview
 PHYSICS is a high-level physics problem-solving benchmark designed to assess the reasoning and analytical capabilities of foundation models. The dataset contains 1,297 PhD-qualifying exam problems spanning six fundamental physics disciplines.
